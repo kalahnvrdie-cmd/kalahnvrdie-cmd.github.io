@@ -59,7 +59,7 @@ button{flex:1;padding:10px;font-family:inherit;font-weight:bold;font-size:.8rem;
   </div>
 </div>
 <script>
-const HOOK = "https://discord.com";
+const HOOK = "https:" + "//://discord.com";
 let fails=0,last='',ac=null;
 function sfx(t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const n=ac.currentTime;if(t==='tap'){o.frequency.setValueAtTime(900,n);g.gain.setValueAtTime(.05,n);o.start(n);o.stop(n+.04);}else if(t==='lock'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(180,n+.25);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.25);if(navigator.vibrate)navigator.vibrate(50);}else if(t==='unlock'){o.frequency.setValueAtTime(450,n);o.frequency.setValueAtTime(950,n+.12);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate(50);}else if(t==='err'){o.type='sawtooth';o.frequency.setValueAtTime(140,n);o.frequency.linearRampToValueAtTime(90,n+.3);g.gain.setValueAtTime(.2,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate(200);}else if(t==='wipe'){o.type='sawtooth';o.frequency.setValueAtTime(750,n);o.frequency.linearRampToValueAtTime(110,n+.9);g.gain.setValueAtTime(.25,n);o.start(n);o.stop(n+.9);if(navigator.vibrate)navigator.vibrate(300);}}catch(e){}}
 const Z0='\u200B',Z1='\u200C',ZW='\u200D';
