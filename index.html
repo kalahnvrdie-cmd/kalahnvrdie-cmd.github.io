@@ -3,186 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KALAH // ENCRYPTED</title>
+    <title>Secret Message @ kalah</title>
     <style>
-        * { box-sizing: border-box; }
         body {
-            background-color: #050505;
-            color: #ff1e42;
+            background-color: #050a05;
+            color: #00ff41;
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 15px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
         }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            opacity: 0.25;
-        }
-        .terminal {
+        .container {
             width: 100%;
-            max-width: 600px;
-            border: 1px solid #ff1e42;
-            padding: 25px;
-            box-shadow: 0 0 25px rgba(255, 30, 66, 0.4);
-            background-color: rgba(10, 10, 10, 0.92);
+            max-width: 500px;
+            border: 1px solid #00ff41;
+            padding: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
             border-radius: 5px;
         }
-        h1 {
-            font-size: 24px;
-            letter-spacing: 3px;
-            border-bottom: 1px dashed #ff1e42;
-            padding-bottom: 10px;
+        h2 {
+            text-align: center;
             margin-top: 0;
-            animation: glitch 2.5s infinite;
+            font-size: 1.3em;
+            text-shadow: 0 0 8px #00ff41;
         }
-        @keyframes glitch {
-            0%, 90%, 100% { transform: translate(0); text-shadow: none; }
-            92% { transform: translate(-2px, 1px); text-shadow: 2px 0 #00ffea; }
-            94% { transform: translate(2px, -1px); text-shadow: -2px 0 #ff1e42; }
-            96% { transform: translate(-1px, 2px); }
+        .subtitle {
+            text-align: center;
+            font-size: 0.8em;
+            color: #00b32d;
+            border-bottom: 1px dashed #00ff41;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
-        p {
-            color: #d4d4d4;
-            line-height: 1.6;
-            font-size: 14px;
-            margin: 10px 0;
-        }
-        .highlight {
-            color: #ff1e42;
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
             font-weight: bold;
         }
-        .cmd-box {
-            margin-top: 20px;
-            border-top: 1px dashed #444;
-            padding-top: 15px;
-        }
-        .cmd-input-line {
-            display: flex;
-            align-items: center;
-            color: #ff1e42;
-        }
-        input {
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
+        textarea, input {
             width: 100%;
-            margin-left: 8px;
+            background-color: #0a140a;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1em;
+            border-radius: 4px;
+            margin-bottom: 15px;
             outline: none;
         }
-        #cmd-output {
-            color: #00ff88;
-            font-size: 13px;
-            margin-top: 10px;
-            min-height: 20px;
+        textarea:focus, input:focus {
+            box-shadow: 0 0 8px #00ff41;
         }
-        .btn {
-            display: block;
-            text-align: center;
-            margin-top: 25px;
-            padding: 12px 20px;
-            border: 1px solid #ff1e42;
-            color: #ff1e42;
-            text-decoration: none;
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            flex: 1;
+            background-color: #0d260d;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 12px;
+            font-family: inherit;
             font-weight: bold;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            background: rgba(255, 30, 66, 0.05);
+            font-size: 0.95em;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
         }
-        .btn:hover {
-            background-color: #ff1e42;
-            color: #050505;
-            box-shadow: 0 0 15px #ff1e42;
+        button:active {
+            background-color: #00ff41;
+            color: #050a05;
+        }
+        #status {
+            text-align: center;
+            font-size: 0.85em;
+            color: #ffff00;
+            margin-bottom: 10px;
+            min-height: 18px;
         }
     </style>
 </head>
 <body>
-    <canvas id="matrix"></canvas>
-    <div class="terminal">
-        <h1>> SYSTEM: KALAH_</h1>
-        <p><span class="highlight">[STATUS]:</span> ENCRYPTED // DO NOT DISTURB</p>
-        <p id="typing-text"></p>
-        <p><span class="highlight">[ACCESS]:</span> Restricted Zone. Level 5 Security.</p>
 
-        <div class="cmd-box">
-            <div style="font-size: 12px; color: #888; margin-bottom: 5px;">Type 'help', 'about', or 'secret' and press Enter:</div>
-            <div class="cmd-input-line">
-                <span>guest@kalah:~$</span>
-                <input type="text" id="cmd-input" placeholder="enter command..." autocomplete="off">
-            </div>
-            <div id="cmd-output"></div>
-        </div>
+<div class="container">
+    <h2>[ Secret Message @ kalah ]</h2>
+    <div class="subtitle">&gt; ENCRYPTED COMMUNICATION TERMINAL_</div>
 
-        <a href="https://whatsapp.com." class="btn">> INITIATE SECURE CHAT</a>
+    <label>&gt; ENTER MESSAGE OR CIPHER CODE:</label>
+    <textarea id="inputText" rows="4" placeholder="Type your secret message or paste encrypted code here..."></textarea>
+
+    <label>&gt; SECURITY KEY (PASSWORD):</label>
+    <input type="password" id="secretKey" placeholder="Enter password...">
+
+    <div class="btn-group">
+        <button onclick="processData('encrypt')">🔒 ENCRYPT</button>
+        <button onclick="processData('decrypt')">🔓 DECRYPT</button>
     </div>
 
-    <script>
-        // Typing Animation
-        const text = "[MESSAGE]: Every shadow hides a story. Read between the lines. Silence is my loudest weapon.";
-        let idx = 0;
-        function typeWriter() {
-            if (idx < text.length) {
-                document.getElementById("typing-text").innerHTML += text.charAt(idx);
-                idx++;
-                setTimeout(typeWriter, 35);
-            }
-        }
-        window.onload = typeWriter;
+    <div id="status"></div>
 
-        // Interactive Terminal Commands
-        const input = document.getElementById("cmd-input");
-        const output = document.getElementById("cmd-output");
-        input.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                const val = input.value.trim().toLowerCase();
-                if (val === "help") {
-                    output.innerHTML = "> Available commands: [about] [secret] [clear]";
-                } else if (val === "about") {
-                    output.innerHTML = "> KALAH: Observer of shadows. Architect of silence.";
-                } else if (val === "secret") {
-                    output.innerHTML = "> ACCESS GRANTED: Look closer into the dark. Not everything is as it seems.";
-                } else if (val === "clear") {
-                    output.innerHTML = "";
-                } else {
-                    output.innerHTML = "> Error: Command '" + val + "' not recognized. Type 'help'.";
-                }
-                input.value = "";
+    <label>&gt; OUTPUT:</label>
+    <textarea id="outputText" rows="4" readonly placeholder="Output will appear here..."></textarea>
+
+    <div class="btn-group">
+        <button onclick="copyOutput()">📋 COPY</button>
+        <button onclick="sendWhatsApp()">📲 SEND VIA WA</button>
+    </div>
+</div>
+
+<script>
+    function showStatus(msg, isError = false) {
+        const statusEl = document.getElementById('status');
+        statusEl.style.color = isError ? '#ff3333' : '#00ff41';
+        statusEl.innerText = msg;
+        setTimeout(() => { statusEl.innerText = ''; }, 3000);
+    }
+
+    function xorCipher(text, key) {
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return result;
+    }
+
+    function processData(mode) {
+        const text = document.getElementById('inputText').value.trim();
+        const key = document.getElementById('secretKey').value;
+        const outputEl = document.getElementById('outputText');
+
+        if (!text) {
+            showStatus('! Please enter a message or code first', true);
+            return;
+        }
+        if (!key) {
+            showStatus('! Please enter a Security Key', true);
+            return;
+        }
+
+        try {
+            if (mode === 'encrypt') {
+                const utf8Bytes = encodeURIComponent(text);
+                const xored = xorCipher(utf8Bytes, key);
+                const encoded = btoa(xored);
+                outputEl.value = encoded;
+                showStatus('✓ Message Encrypted Successfully!');
+            } else {
+                const decodedBase64 = atob(text);
+                const unxored = xorCipher(decodedBase64, key);
+                const originalText = decodeURIComponent(unxored);
+                outputEl.value = originalText;
+                showStatus('✓ Message Decrypted Successfully!');
             }
+        } catch (e) {
+            showStatus('! Error: Wrong password or invalid code', true);
+            outputEl.value = '';
+        }
+    }
+
+    function copyOutput() {
+        const outputEl = document.getElementById('outputText');
+        if (!outputEl.value) {
+            showStatus('! Nothing to copy', true);
+            return;
+        }
+        outputEl.select();
+        outputEl.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(outputEl.value).then(() => {
+            showStatus('✓ Copied to Clipboard!');
+        }).catch(() => {
+            document.execCommand('copy');
+            showStatus('✓ Copied!');
         });
+    }
 
-        // Matrix Rain Effect
-        const canvas = document.getElementById("matrix");
-        const ctx = canvas.getContext("2d");
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerWidth;
-        const letters = "KALAH010101XYZ";
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = "rgba(5, 5, 5, 0.08)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ff1e42";
-            ctx.font = fontSize + "px monospace";
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters.charAt(Math.floor(Math.random() * letters.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
+    function sendWhatsApp() {
+        const out = document.getElementById('outputText').value;
+        if (!out) {
+            showStatus('! Encrypt a message first before sending', true);
+            return;
         }
-        setInterval(drawMatrix, 45);
-    </script>
+        const message = encodeURIComponent(out);
+        window.open('https://whatsapp.com' + message, '_blank');
+    }
+</script>
+
 </body>
 </html>
