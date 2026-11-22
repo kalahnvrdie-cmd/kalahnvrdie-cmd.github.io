@@ -158,39 +158,11 @@
       min-height: 66px;
     }
 
-    .option-card {
-      background: #080a0f;
-      border: 1px solid #242838;
-      border-radius: 8px;
-      padding: 9px 11px;
-      margin-bottom: 11px;
-      font-size: 11px;
-    }
-
-    .toggle-line {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .toggle-line:last-child {
-      margin-bottom: 0;
-    }
-
-    .toggle-line input[type="checkbox"] {
-      width: auto;
-      accent-color: var(--red);
-      transform: scale(1.15);
-      cursor: pointer;
-    }
-
     .btn-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 4px;
+      margin-top: 6px;
       margin-bottom: 13px;
     }
 
@@ -340,21 +312,6 @@
       </div>
     </div>
 
-    <div class="option-card">
-      <div class="toggle-line">
-        <label for="burnAfterRead" style="margin:0;cursor:pointer;color:#e5e7eb;">
-          &gt; BURN AFTER FIRST VIEW:
-        </label>
-        <input id="burnAfterRead" type="checkbox" checked />
-      </div>
-      <div class="toggle-line">
-        <label for="stealthHideMode" style="margin:0;cursor:pointer;color:#e5e7eb;">
-          &gt; INVISIBLE TEXT STEALTH:
-        </label>
-        <input id="stealthHideMode" type="checkbox" checked />
-      </div>
-    </div>
-
     <div class="btn-row">
       <button class="btn-lock" id="lockBtn" type="button">&#128123; HIDE &amp; LOCK</button>
       <button class="btn-unlock" id="unlockModeBtn" type="button">&#128274; UNLOCK</button>
@@ -397,16 +354,17 @@
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
     const EXPIRY_MS = 60 * 60 * 1000;
     const MAX_ATTEMPTS = 3;
-    const INCLUDE_LOCATION = false; // Keep false so no browser location popup appears
+    const BURN_ON_VIEW = true;
+    const USE_INVISIBLE_STEALTH = true;
+    const DEAD_STORAGE_KEY = "KALAH_DEAD_TOKENS_V1";
 
     const TRACKED_EVENTS = new Set([
       "SITE OPENED",
       "WRONG CREDENTIALS",
-      "HARD LOCKOUT (3 FAILED TRIES)",
+      "PERMANENT LOCKOUT (3 TRIES)",
       "SECRET UNLOCKED",
-      "SECRET UNLOCKED & BURNED",
       "MESSAGE EXPIRED (1H)",
-      "BURNED PAYLOAD RETRY"
+      "DEAD PAYLOAD RETRY"
     ]);
 
     const ZW_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"];
@@ -415,14 +373,36 @@
 
     let audioEnabled = true;
     let activeBundle = null;
-    let burnedTokens = new Set();
     let failsCount = 0;
-    let lockedOut = false;
 
     const el = (id) => document.getElementById(id);
 
     function setLog(msg) {
       el("sysLog").textContent = msg;
+    }
+
+    function getDeadTokens() {
+      try {
+        const raw = localStorage.getItem(DEAD_STORAGE_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch (_) {
+        return new Set();
+      }
+    }
+
+    function markTokenDead(tokenId) {
+      if (!tokenId) return;
+      const set = getDeadTokens();
+      set.add(tokenId);
+      try {
+        localStorage.setItem(DEAD_STORAGE_KEY, JSON.stringify(Array.from(set)));
+      } catch (_) {}
+    }
+
+    function isTokenDead(tokenId) {
+      if (!tokenId) return false;
+      return getDeadTokens().has(tokenId);
     }
 
     function playTone(freq = 640, duration = 0.08, type = "triangle") {
@@ -612,16 +592,15 @@
       };
 
       try {
-        const res = await fetch("https://api.web3forms.com/submit", {
+        await fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json"
           },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
+          keepalive: true
         });
-        const data = await res.json();
-        console.log("Web3Forms status:", res.status, data);
       } catch (err) {
         console.error("EMAIL NETWORK ERROR:", err);
       }
@@ -632,26 +611,21 @@
       return Date.now() > bundle.exp;
     }
 
-    async function wipeAll(reason, alertEvent = null) {
+    async function killPayloadForever(reason, alertEvent, tokenId) {
+      if (tokenId) markTokenDead(tokenId);
       activeBundle = null;
+      failsCount = 0;
+      updateShields();
       el("secretMsg").value = "";
-      el("outputBox").value = "";
+      el("outputBox").value = "DEAD // MESSAGE PERMANENTLY DISABLED.";
       el("revealedText").textContent = "";
       el("secretReveal").classList.remove("active");
       el("unlockPanel").classList.remove("active");
       el("countdownBadge").textContent = "TTL: 00:00";
       setLog(reason);
       if (alertEvent) {
-        await sendTelemetry(alertEvent, reason);
+        await sendTelemetry(alertEvent, `${reason} | TokenID: ${tokenId || "n/a"}`);
       }
-    }
-
-    async function hardLockout() {
-      lockedOut = true;
-      updateShields();
-      playTone(180, 0.25, "sawtooth");
-      await wipeAll("LOCKOUT // 3 WRONG ATTEMPTS. PAYLOAD WIPED.", "HARD LOCKOUT (3 FAILED TRIES)");
-      el("outputBox").value = "TERMINATED // 3 FAILED ATTEMPTS.";
     }
 
     el("audioToggle").addEventListener("click", () => {
@@ -668,8 +642,6 @@
       const q = el("secretQuestion").value.trim();
       const ans = el("secretAnswer").value.trim();
       const pwd = el("secretPassword").value.trim();
-      const burn = el("burnAfterRead").checked;
-      const stealth = el("stealthHideMode").checked;
 
       if (!sec || !q || !ans || !pwd) {
         setLog("ERROR // FILL SECRET, QUESTION, ANSWER & PASSWORD.");
@@ -684,16 +656,15 @@
       }
 
       try {
-        lockedOut = false;
         failsCount = 0;
         updateShields();
 
         const enc = await encryptPayload(sec, ans, pwd);
         const bundle = {
-          v: 2,
+          v: 3,
           pub,
           q,
-          burn,
+          burn: BURN_ON_VIEW,
           iat: Date.now(),
           exp: Date.now() + EXPIRY_MS,
           enc
@@ -703,12 +674,12 @@
         bundle._tokenId = token.slice(-24);
         activeBundle = bundle;
 
-        if (stealth) {
+        if (USE_INVISIBLE_STEALTH) {
           el("outputBox").value = pub + hideInZeroWidth(token);
-          setLog("LOCKED // HIDDEN INSIDE PUBLIC TEXT (ZERO-WIDTH).");
+          setLog("LOCKED // HIDDEN INSIDE PUBLIC TEXT.");
         } else {
           el("outputBox").value = `${pub}\n\n${token}`;
-          setLog("LOCKED // PAYLOAD READY IN STEALTH OUTPUT.");
+          setLog("LOCKED // PAYLOAD READY.");
         }
 
         el("secretMsg").value = "";
@@ -724,12 +695,6 @@
     });
 
     el("unlockModeBtn").addEventListener("click", async () => {
-      if (lockedOut) {
-        setLog("LOCKED OUT // SESSION WIPED.");
-        playTone(190, 0.2, "sawtooth");
-        return;
-      }
-
       const raw = el("secretMsg").value || el("outputBox").value;
       try {
         const parsed = unpackToken(raw);
@@ -748,16 +713,18 @@
         return;
       }
 
-      if (burnedTokens.has(activeBundle._tokenId)) {
-        await wipeAll("BURNED // ONE-TIME MESSAGE ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
+      if (isTokenDead(activeBundle._tokenId)) {
+        await killPayloadForever("DEAD // THIS MESSAGE IS PERMANENTLY LOCKED.", "DEAD PAYLOAD RETRY", activeBundle._tokenId);
         return;
       }
 
       if (isExpired(activeBundle)) {
-        await wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED.", "EXPIRED PAYLOAD ATTEMPT");
+        await killPayloadForever("EXPIRED // 1-HOUR TIMER ENDED.", "MESSAGE EXPIRED (1H)", activeBundle._tokenId);
         return;
       }
 
+      failsCount = 0;
+      updateShields();
       el("displayedQuestion").textContent = `QUESTION: ${activeBundle.q}`;
       el("unlockPanel").classList.add("active");
       playTone(680, 0.07);
@@ -765,15 +732,17 @@
     });
 
     el("verifyUnlockBtn").addEventListener("click", async () => {
-      if (lockedOut || !activeBundle) return;
+      if (!activeBundle) return;
 
-      if (burnedTokens.has(activeBundle._tokenId)) {
-        await wipeAll("BURNED // ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
+      const tId = activeBundle._tokenId;
+
+      if (isTokenDead(tId)) {
+        await killPayloadForever("DEAD // THIS MESSAGE NO LONGER WORKS.", "DEAD PAYLOAD RETRY", tId);
         return;
       }
 
       if (isExpired(activeBundle)) {
-        await wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED.", "EXPIRED PAYLOAD ATTEMPT");
+        await killPayloadForever("EXPIRED // 1-HOUR TIMER ENDED.", "MESSAGE EXPIRED (1H)", tId);
         return;
       }
 
@@ -790,17 +759,17 @@
         el("unlockPanel").classList.remove("active");
         el("attemptAnswer").value = "";
         el("attemptPassword").value = "";
+        playTone(990, 0.12);
 
         if (activeBundle.burn) {
-          burnedTokens.add(activeBundle._tokenId);
-          el("outputBox").value = "BURNED // ONE-TIME PAYLOAD CONSUMED.";
-          setLog("DECLASSIFIED & BURNED // CANNOT BE RE-OPENED.");
-          await sendTelemetry("SECRET UNLOCKED & BURNED", `Public: ${activeBundle.pub}`);
+          markTokenDead(tId);
+          el("outputBox").value = "BURNED // ONE-TIME MESSAGE CONSUMED.";
+          setLog("DECLASSIFIED & BURNED // PERMANENTLY DISABLED.");
         } else {
-          playTone(990, 0.12);
           setLog("DECLASSIFIED // ACCESS GRANTED.");
-          await sendTelemetry("SECRET UNLOCKED", `Public: ${activeBundle.pub}`);
         }
+
+        await sendTelemetry("SECRET UNLOCKED", `Public: ${activeBundle.pub} | TokenID: ${tId}`);
       } catch (_) {
         failsCount += 1;
         updateShields();
@@ -808,14 +777,19 @@
         el("attemptPassword").value = "";
 
         if (failsCount >= MAX_ATTEMPTS) {
-          await hardLockout();
+          playTone(180, 0.25, "sawtooth");
+          await killPayloadForever(
+            "LOCKED FOREVER // 3 WRONG ATTEMPTS. MESSAGE KILLED.",
+            "PERMANENT LOCKOUT (3 TRIES)",
+            tId
+          );
         } else {
           playTone(230, 0.18, "sawtooth");
           const left = MAX_ATTEMPTS - failsCount;
           setLog(`DENIED // ${left} ATTEMPT(S) LEFT.`);
           await sendTelemetry(
             "WRONG CREDENTIALS",
-            `Attempt ${failsCount}/${MAX_ATTEMPTS} | AnsLen: ${ans.length} | PwdLen: ${pwd.length}`
+            `Attempt ${failsCount}/${MAX_ATTEMPTS} | TokenID: ${tId} | AnsLen: ${ans.length} | PwdLen: ${pwd.length}`
           );
         }
       }
@@ -854,7 +828,7 @@
       }
       const rem = activeBundle.exp - Date.now();
       if (rem <= 0) {
-        await wipeAll("EXPIRED // 1-HOUR TIMER ENDED.", "MESSAGE EXPIRED (1H)");
+        await killPayloadForever("EXPIRED // 1-HOUR TIMER ENDED.", "MESSAGE EXPIRED (1H)", activeBundle._tokenId);
         return;
       }
       const totalSec = Math.floor(rem / 1000);
