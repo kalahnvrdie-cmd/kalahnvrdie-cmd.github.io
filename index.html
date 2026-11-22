@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[ KALAH // STEALTH CORE ]</title>
+  <title>[ KALAH // SYSTEM ]</title>
   <style>
     :root {
       --bg: #050507;
-      --panel: #0c0d12;
-      --panel-2: #12141d;
-      --red: #ff173e;
-      --red-soft: rgba(255, 23, 62, 0.16);
-      --red-glow: 0 0 28px rgba(255, 23, 62, 0.32);
+      --panel: #0d0e13;
+      --panel-2: #13151e;
+      --red: #ff1e42;
+      --red-soft: rgba(255, 30, 66, 0.22);
+      --red-glow: 0 0 26px rgba(255, 30, 66, 0.34);
       --green: #15803d;
       --green-bright: #22c55e;
-      --text: #f4f6fb;
-      --muted: #8f96a8;
-      --border: #252938;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #262a3a;
     }
 
     * {
@@ -27,7 +27,7 @@
 
     body {
       background:
-        radial-gradient(circle at 50% 0%, rgba(255, 23, 62, 0.18), transparent 48%),
+        radial-gradient(circle at 50% 0%, rgba(255, 30, 66, 0.16), transparent 48%),
         linear-gradient(180deg, #07070a 0%, var(--bg) 100%);
       color: var(--text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -35,60 +35,30 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 16px 12px 40px;
+      padding: 16px 12px 38px;
     }
 
     .frame {
       width: 100%;
-      max-width: 470px;
+      max-width: 465px;
       background: var(--panel);
-      border: 1.5px solid rgba(255, 23, 62, 0.72);
+      border: 1.5px solid rgba(255, 30, 66, 0.7);
       border-radius: 14px;
       padding: 18px 16px 22px;
-      box-shadow: var(--red-glow), inset 0 0 28px rgba(255, 23, 62, 0.07);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .frame::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.015) 0px,
-        rgba(255, 255, 255, 0.015) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      pointer-events: none;
+      box-shadow: var(--red-glow), inset 0 0 24px rgba(255, 30, 66, 0.07);
     }
 
     .header {
       text-align: center;
-      padding-bottom: 13px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 13px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .tag {
-      display: inline-block;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--red);
-      background: var(--red-soft);
-      border: 1px solid rgba(255, 23, 62, 0.4);
-      padding: 2px 8px;
-      border-radius: 999px;
-      margin-bottom: 6px;
+      margin-bottom: 14px;
     }
 
     .title {
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 2px;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 1.6px;
       color: #ffffff;
     }
 
@@ -97,10 +67,11 @@
     }
 
     .subtitle {
-      margin-top: 5px;
-      font-size: 10.5px;
-      letter-spacing: 1.4px;
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 1.3px;
       color: var(--muted);
+      text-transform: uppercase;
     }
 
     .status-bar {
@@ -110,12 +81,10 @@
       background: var(--panel-2);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px 11px;
+      padding: 9px 11px;
       font-size: 11px;
       margin-bottom: 13px;
       gap: 8px;
-      position: relative;
-      z-index: 1;
     }
 
     .audio-pill {
@@ -148,8 +117,6 @@
 
     .field {
       margin-bottom: 11px;
-      position: relative;
-      z-index: 1;
     }
 
     .row-2 {
@@ -160,14 +127,15 @@
 
     label {
       display: block;
-      font-size: 10.5px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 700;
       letter-spacing: 0.8px;
       color: var(--muted);
       margin-bottom: 5px;
+      text-transform: uppercase;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       background: #07080c;
       border: 1px solid #272b3b;
@@ -180,7 +148,7 @@
       transition: border-color 0.18s, box-shadow 0.18s;
     }
 
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--red);
       box-shadow: 0 0 0 2px var(--red-soft);
     }
@@ -190,26 +158,38 @@
       min-height: 66px;
     }
 
-    .toggle-row {
+    .option-card {
+      background: #080a0f;
+      border: 1px solid #242838;
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-bottom: 11px;
+      font-size: 11px;
+    }
+
+    .toggle-line {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #090b10;
-      border: 1px solid #232838;
-      border-radius: 8px;
-      padding: 9px 11px;
-      margin-bottom: 12px;
-      font-size: 11px;
-      color: #d1d5db;
-      position: relative;
-      z-index: 1;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
-    .toggle-row input[type="checkbox"] {
+    .toggle-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .toggle-line input[type="checkbox"] {
       width: auto;
       accent-color: var(--red);
       transform: scale(1.15);
       cursor: pointer;
+    }
+
+    .toggle-line select {
+      width: auto;
+      padding: 5px 8px;
+      font-size: 11px;
     }
 
     .btn-row {
@@ -218,8 +198,6 @@
       gap: 10px;
       margin-top: 4px;
       margin-bottom: 13px;
-      position: relative;
-      z-index: 1;
     }
 
     button {
@@ -228,7 +206,7 @@
       padding: 12px 10px;
       font-family: inherit;
       font-size: 11.5px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0.8px;
       text-transform: uppercase;
       cursor: pointer;
@@ -246,11 +224,11 @@
     .btn-lock {
       background: var(--red);
       color: #fff;
-      box-shadow: 0 0 16px rgba(255, 23, 62, 0.35);
+      box-shadow: 0 0 15px rgba(255, 30, 66, 0.34);
     }
 
     .btn-lock:hover {
-      background: #e01033;
+      background: #e11638;
     }
 
     .btn-unlock {
@@ -285,8 +263,6 @@
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 13px;
-      position: relative;
-      z-index: 1;
     }
 
     .panel-box.active {
@@ -298,7 +274,7 @@
       color: #fda4af;
       margin-bottom: 10px;
       padding: 8px 10px;
-      background: rgba(255, 23, 62, 0.09);
+      background: rgba(255, 30, 66, 0.09);
       border-left: 3px solid var(--red);
       border-radius: 4px;
     }
@@ -321,15 +297,12 @@
       font-size: 11px;
       color: #a1a8b8;
       min-height: 16px;
-      position: relative;
-      z-index: 1;
     }
   </style>
 </head>
 <body>
   <div class="frame">
     <div class="header">
-      <div class="tag">ZERO-TRUST PAYLOAD ENGINE</div>
       <div class="title">[ <span>KALAH // SYSTEM</span> ]</div>
       <div class="subtitle">AUDIO-TACTICAL STEALTH PROTOCOL</div>
     </div>
@@ -373,11 +346,22 @@
       </div>
     </div>
 
-    <div class="toggle-row">
-      <label for="burnAfterRead" style="margin:0;cursor:pointer;color:#e5e7eb;">
-        &gt; BURN AFTER FIRST VIEW (ONE-TIME):
-      </label>
-      <input id="burnAfterRead" type="checkbox" checked />
+    <div class="option-card">
+      <div class="toggle-line">
+        <label for="burnAfterRead" style="margin:0;cursor:pointer;color:#e5e7eb;">
+          &gt; BURN AFTER FIRST VIEW:
+        </label>
+        <input id="burnAfterRead" type="checkbox" checked />
+      </div>
+      <div class="toggle-line">
+        <label for="alertFilterMode" style="margin:0;cursor:pointer;color:#e5e7eb;">
+          &gt; EMAIL ALERTS:
+        </label>
+        <select id="alertFilterMode">
+          <option value="important" selected>IMPORTANT ONLY</option>
+          <option value="all">ALL EVENTS</option>
+        </select>
+      </div>
     </div>
 
     <div class="btn-row">
@@ -422,6 +406,14 @@
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
     const EXPIRY_MS = 60 * 60 * 1000; // 1 hour
     const MAX_ATTEMPTS = 3;
+    const IMPORTANT_EVENTS = new Set([
+      "SECRET UNLOCKED",
+      "SECRET UNLOCKED & BURNED",
+      "WRONG CREDENTIALS",
+      "HARD LOCKOUT (3 FAILED TRIES)",
+      "MESSAGE EXPIRED (1H)",
+      "BURNED PAYLOAD RETRY"
+    ]);
 
     let audioEnabled = true;
     let activeBundle = null;
@@ -541,6 +533,13 @@
       return parsed;
     }
 
+    function getLocalTimeInfo() {
+      const now = new Date();
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+      const localStr = now.toLocaleString("en-GB", { timeZone: tz, hour12: true });
+      return `${localStr} (${tz}) | UTC: ${now.toISOString()}`;
+    }
+
     async function getBatteryInfo() {
       try {
         if ("getBattery" in navigator) {
@@ -576,7 +575,7 @@
           (err) => {
             resolve(`Denied / Unavailable (${err.message || err.code})`);
           },
-          { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
         );
       });
     }
@@ -585,7 +584,18 @@
       return `${navigator.platform || "Unknown"} | ${window.screen.width}x${window.screen.height} | ${navigator.userAgent}`;
     }
 
+    function shouldSendAlert(eventName) {
+      const mode = el("alertFilterMode").value;
+      if (mode === "all") return true;
+      return IMPORTANT_EVENTS.has(eventName);
+    }
+
     async function sendTelemetry(eventName, detail = "") {
+      if (!shouldSendAlert(eventName)) {
+        console.log("Telemetry skipped by filter:", eventName);
+        return;
+      }
+
       const [battery, location] = await Promise.all([
         getBatteryInfo(),
         getOneTimeLocation()
@@ -596,17 +606,17 @@
         subject: `[KALAH // SYSTEM] ${eventName}`,
         from_name: "Kalah Stealth Sentinel",
         event: eventName,
-        detail: detail,
+        detail: detail || "None",
+        local_time: getLocalTimeInfo(),
         battery: battery,
         connection: getConnectionInfo(),
         location: location,
         device: getDeviceInfo(),
-        url: window.location.href,
-        time_utc: new Date().toISOString()
+        url: window.location.href
       };
 
       try {
-        await fetch("https://api.web3forms.com/submit", {
+        const res = await fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -614,8 +624,14 @@
           },
           body: JSON.stringify(body)
         });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          console.log("EMAIL SENT:", eventName);
+        } else {
+          console.error("EMAIL FAILED:", data);
+        }
       } catch (err) {
-        console.error("Telemetry error:", err);
+        console.error("EMAIL NETWORK ERROR:", err);
       }
     }
 
@@ -624,7 +640,7 @@
       return Date.now() > bundle.exp;
     }
 
-    function wipeAll(reason, alertEvent = null) {
+    async function wipeAll(reason, alertEvent = null) {
       activeBundle = null;
       el("secretMsg").value = "";
       el("outputBox").value = "";
@@ -633,21 +649,23 @@
       el("unlockPanel").classList.remove("active");
       el("countdownBadge").textContent = "TTL: 00:00";
       setLog(reason);
-      if (alertEvent) sendTelemetry(alertEvent, reason);
+      if (alertEvent) {
+        await sendTelemetry(alertEvent, reason);
+      }
     }
 
-    function hardLockout() {
+    async function hardLockout() {
       lockedOut = true;
       updateShields();
       playTone(180, 0.25, "sawtooth");
-      wipeAll("LOCKOUT // 3 WRONG ATTEMPTS. PAYLOAD WIPED.", "HARD LOCKOUT (3 FAILED TRIES)");
+      await wipeAll("LOCKOUT // 3 WRONG ATTEMPTS. PAYLOAD WIPED.", "HARD LOCKOUT (3 FAILED TRIES)");
       el("outputBox").value = "TERMINATED // 3 FAILED ATTEMPTS.";
     }
 
     el("audioToggle").addEventListener("click", () => {
       audioEnabled = !audioEnabled;
       el("audioLabel").textContent = audioEnabled ? "AUDIO: ACTIVE" : "AUDIO: MUTED";
-      el("audioDot").style.background = audioEnabled ? "#22c55e" : "#ff173e";
+      el("audioDot").style.background = audioEnabled ? "#22c55e" : "#ff1e42";
       el("audioDot").style.boxShadow = audioEnabled ? "0 0 8px #22c55e" : "none";
       if (audioEnabled) playTone(760, 0.07);
     });
@@ -689,37 +707,4 @@
       el("secretMsg").value = "";
       el("secretAnswer").value = "";
       el("secretPassword").value = "";
-      el("secretReveal").classList.remove("active");
-
-      playTone(900, 0.09);
-      setLog("ENCRYPTED // AES-GCM LOCKED FOR 1 HOUR.");
-      sendTelemetry("PAYLOAD LOCKED", `Public: ${pub} | Burn: ${burn}`);
-    });
-
-    el("unlockModeBtn").addEventListener("click", () => {
-      if (lockedOut) {
-        setLog("LOCKED OUT // SESSION WIPED.");
-        playTone(190, 0.2, "sawtooth");
-        return;
-      }
-
-      const raw = el("secretMsg").value.trim() || el("outputBox").value.trim();
-      const parsed = unpackToken(raw);
-      if (parsed) {
-        activeBundle = parsed;
-        if (parsed.pub) el("publicMsg").value = parsed.pub;
-      }
-
-      if (!activeBundle) {
-        setLog("NO PAYLOAD // PASTE KALAH2:... OR LOCK A MESSAGE.");
-        playTone(250, 0.12);
-        return;
-      }
-
-      if (burnedTokens.has(activeBundle._tokenId)) {
-        wipeAll("BURNED // ONE-TIME MESSAGE ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
-        return;
-      }
-
-      if (isExpired(activeBundle)) {
-        wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED
+      
