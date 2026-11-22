@@ -74,12 +74,22 @@ function run(m){
   if(!i)return ntf('! TYPE SOMETHING FIRST',1);
   if(!k)return ntf('! ENTER SECRET KEY',1);
   try{
-    if(m==='lock'){o.value=btoa(xor(encodeURIComponent(i),k));ntf('✓ LOCKED & READY',0);}
-    else{const d=decodeURIComponent(xor(atob(i),k));if(!d)throw 1;o.value=d;fails=0;upd();ntf('✓ UNLOCKED',0);}
+    if(m==='lock'){
+      o.value=btoa(xor(encodeURIComponent("KALAH::"+i),k));
+      ntf('✓ LOCKED & READY',0);
+    }else{
+      const d=decodeURIComponent(xor(atob(i),k));
+      if(!d.startsWith("KALAH::"))throw 1;
+      o.value=d.slice(7);
+      fails=0;upd();ntf('✓ UNLOCKED',0);
+    }
   }catch(e){
     o.value='';
-    if(m==='unlock'){fails++;upd();if(fails>=3)wipe();else{document.getElementById('key').value='';ntf(`⚠️ WRONG KEY! ${3-fails} LEFT`,1);}}
-    else ntf('! ERROR',1);
+    if(m==='unlock'){
+      fails++;upd();
+      if(fails>=3)wipe();
+      else{document.getElementById('key').value='';ntf(`⚠️ WRONG KEY! ${3-fails} LEFT`,1);}
+    }else ntf('! ERROR',1);
   }
 }
 function cpy(){const o=document.getElementById('out');if(!o.value)return ntf('! NOTHING TO COPY',1);o.select();navigator.clipboard.writeText(o.value);ntf('✓ COPIED',0);}
