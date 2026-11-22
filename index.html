@@ -350,8 +350,12 @@
     <div class="sys-log" id="sysLog">KALAH CORE READY // AES-GCM // 1H TTL // MAX 3 TRIES</div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-    const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
+    const EMAILJS_SERVICE_ID = "service_b35yizj";
+    const EMAILJS_TEMPLATE_ID = "template_to11ohl";
+    const EMAILJS_PUBLIC_KEY = "V_KXczIrQOALT726S";
+
     const EXPIRY_MS = 60 * 60 * 1000;
     const MAX_ATTEMPTS = 3;
     const BURN_ON_VIEW = true;
@@ -578,10 +582,10 @@
       if (!TRACKED_EVENTS.has(eventName)) return;
 
       const battery = await getBatteryInfo();
-      const body = {
-        access_key: WEB3FORMS_ACCESS_KEY,
-        subject: `[KALAH // SYSTEM] ${eventName}`,
-        from_name: "Kalah Stealth Sentinel",
+      const params = {
+        name: "KALAH // SYSTEM",
+        title: eventName,
+        email: "sentinel@kalah.system",
         event: eventName,
         detail: detail || "None",
         local_time: getLocalTimeInfo(),
@@ -592,17 +596,11 @@
       };
 
       try {
-        await fetch("https://api.web3forms.com/submit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(body),
-          keepalive: true
-        });
+        if (window.emailjs) {
+          await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params);
+        }
       } catch (err) {
-        console.error("EMAIL NETWORK ERROR:", err);
+        console.error("EMAILJS ERROR:", err);
       }
     }
 
@@ -838,6 +836,9 @@
     }, 1000);
 
     window.addEventListener("DOMContentLoaded", async () => {
+      if (window.emailjs) {
+        window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+      }
       updateShields();
       await sendTelemetry("SITE OPENED", "KALAH // SYSTEM loaded");
     });
