@@ -397,9 +397,8 @@
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
     const EXPIRY_MS = 60 * 60 * 1000;
     const MAX_ATTEMPTS = 3;
+    const INCLUDE_LOCATION = false; // Keep false so no browser location popup appears
 
-    // Events that trigger email telemetry:
-    // Site open, wrong credentials, 3-attempt lockout, unlock/burn, expiry/retry
     const TRACKED_EVENTS = new Set([
       "SITE OPENED",
       "WRONG CREDENTIALS",
@@ -591,27 +590,6 @@
       return `Type: ${type} | Effective: ${eff} | Downlink: ${down}`;
     }
 
-    function getOneTimeLocation() {
-      return new Promise((resolve) => {
-        if (!("geolocation" in navigator)) {
-          resolve("Geolocation unsupported");
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const { latitude, longitude, accuracy } = pos.coords;
-            resolve(
-              `${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)}m) | https://maps.google.com/?q=${latitude},${longitude}`
-            );
-          },
-          (err) => {
-            resolve(`Denied / Unavailable (${err.message || err.code})`);
-          },
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
-        );
-      });
-    }
-
     function getDeviceInfo() {
       return `${navigator.platform || "Unknown"} | ${window.screen.width}x${window.screen.height} | ${navigator.userAgent}`;
     }
@@ -619,11 +597,7 @@
     async function sendTelemetry(eventName, detail = "") {
       if (!TRACKED_EVENTS.has(eventName)) return;
 
-      const [battery, location] = await Promise.all([
-        getBatteryInfo(),
-        getOneTimeLocation()
-      ]);
-
+      const battery = await getBatteryInfo();
       const body = {
         access_key: WEB3FORMS_ACCESS_KEY,
         subject: `[KALAH // SYSTEM] ${eventName}`,
@@ -633,13 +607,12 @@
         local_time: getLocalTimeInfo(),
         battery: battery,
         connection: getConnectionInfo(),
-        location: location,
         device: getDeviceInfo(),
         url: window.location.href
       };
 
       try {
-        await fetch("https://api.web3forms.com/submit", {
+        const res = await fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -647,6 +620,8 @@
           },
           body: JSON.stringify(body)
         });
+        const data = await res.json();
+        console.log("Web3Forms status:", res.status, data);
       } catch (err) {
         console.error("EMAIL NETWORK ERROR:", err);
       }
