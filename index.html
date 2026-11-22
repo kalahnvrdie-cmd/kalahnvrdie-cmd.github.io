@@ -3,194 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secret Message @ kalah</title>
+    <title>KALAH // ENCRYPTED TERMINAL</title>
     <style>
-        body {
-            background-color: #050a05;
-            color: #00ff41;
-            font-family: 'Courier New', Courier, monospace;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 15px;
+            padding: 0;
+        }
+        body {
+            background-color: #050505;
+            color: #ff1e42;
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid #00ff41;
+            align-items: center;
             padding: 15px;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-            border-radius: 5px;
+            background-image: radial-gradient(circle at center, #1a0005 0%, #050505 100%);
         }
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            font-size: 1.3em;
-            text-shadow: 0 0 8px #00ff41;
+        .terminal-box {
+            width: 100%;
+            max-width: 480px;
+            background-color: #0a0a0a;
+            border: 2px solid #ff1e42;
+            box-shadow: 0 0 25px rgba(255, 30, 66, 0.35);
+            border-radius: 8px;
+            padding: 20px;
         }
-        .subtitle {
+        .header {
             text-align: center;
-            font-size: 0.8em;
-            color: #00b32d;
-            border-bottom: 1px dashed #00ff41;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 1px dashed #ff1e42;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #ff1e42;
+        }
+        .header p {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 5px;
+            letter-spacing: 1px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            font-size: 0.85rem;
             font-weight: bold;
+            margin-bottom: 6px;
+            color: #ff4d6d;
         }
         textarea, input {
             width: 100%;
-            background-color: #0a140a;
-            color: #00ff41;
-            border: 1px solid #00ff41;
-            padding: 10px;
-            box-sizing: border-box;
+            background-color: #111;
+            color: #fff;
+            border: 1px solid #ff1e42;
+            border-radius: 5px;
+            padding: 12px;
             font-family: inherit;
-            font-size: 1em;
-            border-radius: 4px;
+            font-size: 0.95rem;
             margin-bottom: 15px;
             outline: none;
         }
         textarea:focus, input:focus {
-            box-shadow: 0 0 8px #00ff41;
+            box-shadow: 0 0 10px rgba(255, 30, 66, 0.6);
+            border-color: #fff;
         }
-        .btn-group {
+        .btn-row {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
         }
         button {
             flex: 1;
-            background-color: #0d260d;
-            color: #00ff41;
-            border: 1px solid #00ff41;
             padding: 12px;
             font-family: inherit;
             font-weight: bold;
-            font-size: 0.95em;
+            font-size: 0.9rem;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 4px;
+            text-transform: uppercase;
             transition: 0.2s;
         }
-        button:active {
-            background-color: #00ff41;
-            color: #050a05;
+        .btn-encrypt {
+            background-color: #ff1e42;
+            color: #050505;
+            border: none;
         }
-        #status {
+        .btn-encrypt:active {
+            background-color: #fff;
+        }
+        .btn-decrypt {
+            background-color: transparent;
+            color: #ff1e42;
+            border: 1px solid #ff1e42;
+        }
+        .btn-decrypt:active {
+            background-color: #ff1e42;
+            color: #050505;
+        }
+        .btn-wa {
+            background-color: #128c7e;
+            color: #fff;
+            border: none;
+        }
+        .btn-copy {
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        #msgBox {
             text-align: center;
-            font-size: 0.85em;
-            color: #ffff00;
+            font-size: 0.85rem;
+            min-height: 20px;
             margin-bottom: 10px;
-            min-height: 18px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #555;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>[ Secret Message @ kalah ]</h2>
-    <div class="subtitle">&gt; ENCRYPTED COMMUNICATION TERMINAL_</div>
-
-    <label>&gt; ENTER MESSAGE OR CIPHER CODE:</label>
-    <textarea id="inputText" rows="4" placeholder="Type your secret message or paste encrypted code here..."></textarea>
-
-    <label>&gt; SECURITY KEY (PASSWORD):</label>
-    <input type="password" id="secretKey" placeholder="Enter password...">
-
-    <div class="btn-group">
-        <button onclick="processData('encrypt')">🔒 ENCRYPT</button>
-        <button onclick="processData('decrypt')">🔓 DECRYPT</button>
+<div class="terminal-box">
+    <div class="header">
+        <h1>[ KALAH // SYSTEM ]</h1>
+        <p>ENCRYPTED. DO NOT DISTURB. 🔒</p>
     </div>
 
-    <div id="status"></div>
+    <label>&gt; ENTER SECRET MESSAGE OR CODE:</label>
+    <textarea id="inputArea" rows="4" placeholder="Type message to lock, or paste code to unlock..."></textarea>
 
-    <label>&gt; OUTPUT:</label>
-    <textarea id="outputText" rows="4" readonly placeholder="Output will appear here..."></textarea>
+    <label>&gt; SECRET KEY (PASSWORD):</label>
+    <input type="password" id="passKey" placeholder="Enter secret key...">
 
-    <div class="btn-group">
-        <button onclick="copyOutput()">📋 COPY</button>
-        <button onclick="sendWhatsApp()">📲 SEND VIA WA</button>
+    <div class="btn-row">
+        <button class="btn-encrypt" onclick="runCipher('lock')">🔒 LOCK (ENCRYPT)</button>
+        <button class="btn-decrypt" onclick="runCipher('unlock')">🔓 UNLOCK (DECRYPT)</button>
     </div>
+
+    <div id="msgBox"></div>
+
+    <label>&gt; TERMINAL OUTPUT:</label>
+    <textarea id="outputArea" rows="4" readonly placeholder="Encrypted/Decrypted result will appear here..."></textarea>
+
+    <div class="btn-row">
+        <button class="btn-copy" onclick="copyText()">📋 COPY</button>
+        <button class="btn-wa" onclick="shareWA()">📲 SEND WHATSAPP</button>
+    </div>
+
+    <div class="footer">SYSTEM SECURED BY KALAH PROTOCOL</div>
 </div>
 
 <script>
-    function showStatus(msg, isError = false) {
-        const statusEl = document.getElementById('status');
-        statusEl.style.color = isError ? '#ff3333' : '#00ff41';
-        statusEl.innerText = msg;
-        setTimeout(() => { statusEl.innerText = ''; }, 3000);
+    function notify(text, isErr) {
+        const box = document.getElementById('msgBox');
+        box.style.color = isErr ? '#ff3333' : '#00ff66';
+        box.innerText = text;
+        setTimeout(() => { box.innerText = ''; }, 3500);
     }
 
-    function xorCipher(text, key) {
-        let result = '';
-        for (let i = 0; i < text.length; i++) {
-            result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    function cipherEngine(str, key) {
+        let out = '';
+        for (let i = 0; i < str.length; i++) {
+            out += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
         }
-        return result;
+        return out;
     }
 
-    function processData(mode) {
-        const text = document.getElementById('inputText').value.trim();
-        const key = document.getElementById('secretKey').value;
-        const outputEl = document.getElementById('outputText');
+    function runCipher(action) {
+        const input = document.getElementById('inputArea').value.trim();
+        const key = document.getElementById('passKey').value;
+        const output = document.getElementById('outputArea');
 
-        if (!text) {
-            showStatus('! Please enter a message or code first', true);
+        if (!input) {
+            notify('! TYPE SOMETHING FIRST', true);
             return;
         }
         if (!key) {
-            showStatus('! Please enter a Security Key', true);
+            notify('! ENTER SECRET KEY', true);
             return;
         }
 
         try {
-            if (mode === 'encrypt') {
-                const utf8Bytes = encodeURIComponent(text);
-                const xored = xorCipher(utf8Bytes, key);
-                const encoded = btoa(xored);
-                outputEl.value = encoded;
-                showStatus('✓ Message Encrypted Successfully!');
+            if (action === 'lock') {
+                const encodedUri = encodeURIComponent(input);
+                const xored = cipherEngine(encodedUri, key);
+                const base64 = btoa(xored);
+                output.value = base64;
+                notify('✓ MESSAGE LOCKED & READY', false);
             } else {
-                const decodedBase64 = atob(text);
-                const unxored = xorCipher(decodedBase64, key);
-                const originalText = decodeURIComponent(unxored);
-                outputEl.value = originalText;
-                showStatus('✓ Message Decrypted Successfully!');
+                const rawBase64 = atob(input);
+                const unxored = cipherEngine(rawBase64, key);
+                const decodedUri = decodeURIComponent(unxored);
+                output.value = decodedUri;
+                notify('✓ MESSAGE UNLOCKED', false);
             }
-        } catch (e) {
-            showStatus('! Error: Wrong password or invalid code', true);
-            outputEl.value = '';
+        } catch (err) {
+            output.value = '';
+            notify('! WRONG KEY OR INVALID CODE', true);
         }
     }
 
-    function copyOutput() {
-        const outputEl = document.getElementById('outputText');
-        if (!outputEl.value) {
-            showStatus('! Nothing to copy', true);
+    function copyText() {
+        const out = document.getElementById('outputArea');
+        if (!out.value) {
+            notify('! NOTHING TO COPY', true);
             return;
         }
-        outputEl.select();
-        outputEl.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(outputEl.value).then(() => {
-            showStatus('✓ Copied to Clipboard!');
-        }).catch(() => {
+        out.select();
+        out.setSelectionRange(0, 99999);
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(out.value);
+        } else {
             document.execCommand('copy');
-            showStatus('✓ Copied!');
-        });
+        }
+        notify('✓ COPIED TO CLIPBOARD', false);
     }
 
-    function sendWhatsApp() {
-        const out = document.getElementById('outputText').value;
+    function shareWA() {
+        const out = document.getElementById('outputArea').value;
         if (!out) {
-            showStatus('! Encrypt a message first before sending', true);
+            notify('! LOCK A MESSAGE FIRST', true);
             return;
         }
-        const message = encodeURIComponent(out);
-        window.open('https://whatsapp.com' + message, '_blank');
+        const siteUrl = window.location.href;
+        const fullMsg = "🔒 *ENCRYPTED MESSAGE (KALAH)*\n\n" + out + "\n\n🔓 Unlock here: " + siteUrl;
+        const waLink = "https://wa.me" + encodeURIComponent(fullMsg);
+        window.location.href = waLink;
     }
 </script>
 
