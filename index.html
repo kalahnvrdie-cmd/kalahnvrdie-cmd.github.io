@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KALAH // SYSTEM</title>
+<title>KALAH // STEALTH SYSTEM</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#050505;color:#ff1e42;font-family:monospace;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:15px}
-.box{width:100%;max-width:460px;background:#0a0a0a;border:2px solid #ff1e42;box-shadow:0 0 20px rgba(255,30,66,.4);border-radius:8px;padding:18px;position:relative}
-.hdr{text-align:center;border-bottom:1px dashed #ff1e42;padding-bottom:12px;margin-bottom:12px}
-.hdr h1{font-size:1.4rem;letter-spacing:2px;text-shadow:0 0 8px #ff1e42}
-.hdr p{font-size:.75rem;color:#999;margin-top:4px}
-.bar{display:flex;justify-content:space-between;background:#140508;border:1px solid #4d000f;padding:6px 10px;border-radius:4px;font-size:.75rem;margin-bottom:12px}
-label{display:block;font-size:.8rem;font-weight:bold;margin-bottom:5px;color:#ff4d6d}
-textarea,input{width:100%;background:#111;color:#fff;border:1px solid #ff1e42;border-radius:5px;padding:10px;font-family:inherit;font-size:.95rem;margin-bottom:12px;outline:none}
-.row{display:flex;gap:10px;margin-bottom:12px}
-button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem;border-radius:5px;cursor:pointer;text-transform:uppercase}
+.box{width:100%;max-width:460px;background:#0a0a0a;border:2px solid #ff1e42;box-shadow:0 0 20px rgba(255,30,66,.4);border-radius:8px;padding:16px;position:relative}
+.hdr{text-align:center;border-bottom:1px dashed #ff1e42;padding-bottom:10px;margin-bottom:10px}
+.hdr h1{font-size:1.35rem;letter-spacing:2px;text-shadow:0 0 8px #ff1e42}
+.hdr p{font-size:.7rem;color:#999;margin-top:3px}
+.bar{display:flex;justify-content:space-between;background:#140508;border:1px solid #4d000f;padding:5px 10px;border-radius:4px;font-size:.75rem;margin-bottom:10px}
+label{display:block;font-size:.78rem;font-weight:bold;margin-bottom:4px;color:#ff4d6d}
+textarea,input{width:100%;background:#111;color:#fff;border:1px solid #ff1e42;border-radius:5px;padding:9px;font-family:inherit;font-size:.9rem;margin-bottom:10px;outline:none}
+.row{display:flex;gap:10px;margin-bottom:10px}
+button{flex:1;padding:10px;font-family:inherit;font-weight:bold;font-size:.82rem;border-radius:5px;cursor:pointer;text-transform:uppercase}
 .enc{background:#ff1e42;color:#050505;border:none}
 .dec{background:transparent;color:#ff1e42;border:1px solid #ff1e42}
 .wa{background:#128c7e;color:#fff;border:none}
 .cpy{background:#222;color:#fff;border:1px solid #555}
-#msg{text-align:center;font-size:.8rem;min-height:20px;margin-bottom:8px;font-weight:bold}
+#msg{text-align:center;font-size:.78rem;min-height:18px;margin-bottom:6px;font-weight:bold}
 #wipe{display:none;position:absolute;inset:0;background:rgba(10,0,2,.97);border-radius:6px;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;z-index:10}
 #wipe h2{color:#ff1e42;font-size:1.3rem;margin-bottom:10px}
 #wipe p{color:#fff;font-size:.8rem;margin-bottom:12px}
@@ -31,25 +31,27 @@ button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem
 <div class="box">
   <div id="wipe">
     <h2>⚠️ CODE BURNED ⚠️</h2>
-    <p>3 FAILED ATTEMPTS.<br>CODE ADDED TO PERMANENT BLACKLIST.</p>
+    <p>3 FAILED ATTEMPTS.<br>MESSAGE ADDED TO PERMANENT BLACKLIST.</p>
     <div id="tmr">15s</div>
   </div>
   <div class="hdr">
-    <h1>[ KALAH // SYSTEM ]</h1>
-    <p>1-HOUR SELF-DESTRUCT PROTOCOL 🔒</p>
+    <h1>[ KALAH // STEALTH ]</h1>
+    <p>INVISIBLE TEXT + 1H SELF-DESTRUCT 🔒</p>
   </div>
   <div class="bar"><span>⏱️ EXPIRY: 60 MINS</span><span id="shd">🛡️ 🛡️ 🛡️</span></div>
-  <label>&gt; SECRET MESSAGE OR CODE:</label>
-  <textarea id="in" rows="3" placeholder="Type message or paste code..."></textarea>
+  <label>&gt; PUBLIC MESSAGE (VISIBLE TO ALL):</label>
+  <input type="text" id="pub" placeholder="e.g. Heta panthi yanawada? (Optional)">
+  <label>&gt; SECRET MESSAGE (OR PASTE TO UNLOCK):</label>
+  <textarea id="in" rows="3" placeholder="Type secret message to hide, or paste received message to unlock..."></textarea>
   <label>&gt; SECRET KEY (PASSWORD):</label>
   <input type="password" id="key" placeholder="Enter password...">
   <div class="row">
-    <button class="enc" onclick="run('lock')">🔒 LOCK (1H)</button>
+    <button class="enc" onclick="run('lock')">👻 HIDE & LOCK</button>
     <button class="dec" onclick="run('unlock')">🔓 UNLOCK</button>
   </div>
   <div id="msg"></div>
-  <label>&gt; TERMINAL OUTPUT:</label>
-  <textarea id="out" rows="3" readonly placeholder="Output appears here..."></textarea>
+  <label>&gt; STEALTH OUTPUT:</label>
+  <textarea id="out" rows="3" readonly placeholder="Stealth output appears here..."></textarea>
   <div class="row">
     <button class="cpy" onclick="cpy()">📋 COPY</button>
     <button class="wa" onclick="wa()">📲 WHATSAPP</button>
@@ -57,14 +59,15 @@ button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem
 </div>
 <script>
 let fails=0,lastCode='';
+const Z0='\u200B',Z1='\u200C',ZW='\u200D';
+function toZW(s){return ZW+s.split('').map(c=>c.charCodeAt(0).toString(2).padStart(8,'0').replace(/0/g,Z0).replace(/1/g,Z1)).join('')+ZW;}
+function fromZW(s){const m=s.match(/\u200D([\u200B\u200C]+)\u200D/);if(!m)return null;const b=m[1].replace(/\u200B/g,'0').replace(/\u200C/g,'1');let r='';for(let i=0;i<b.length;i+=8)r+=String.fromCharCode(parseInt(b.slice(i,i+8),2));return r;}
 function getBL(){return JSON.parse(localStorage.getItem('kalah_bl')||'[]');}
 function addBL(c){const b=getBL();if(!b.includes(c)){b.push(c);localStorage.setItem('kalah_bl',JSON.stringify(b));}}
 function upd(){document.getElementById('shd').innerText='🛡️ '.repeat(3-fails)+'❌ '.repeat(fails);}
 function wipe(c){
   addBL(c);
-  document.getElementById('in').value='';
-  document.getElementById('key').value='';
-  document.getElementById('out').value='';
+  ['pub','in','key','out'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('msg').innerText='';
   const w=document.getElementById('wipe'),t=document.getElementById('tmr');
   w.style.display='flex';let s=15;t.innerText=s+'s';
@@ -73,38 +76,42 @@ function wipe(c){
 function ntf(t,e){const m=document.getElementById('msg');m.style.color=e?'#ff3333':'#00ff66';m.innerText=t;setTimeout(()=>{if(m.innerText===t)m.innerText='';},4000);}
 function xor(s,k){let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return r;}
 function run(m){
-  const i=document.getElementById('in').value.trim(),k=document.getElementById('key').value,o=document.getElementById('out');
-  if(!i)return ntf('! TYPE SOMETHING FIRST',1);
+  const p=document.getElementById('pub').value.trim(),i=document.getElementById('in').value.trim(),k=document.getElementById('key').value,o=document.getElementById('out');
+  if(!i)return ntf('! TYPE OR PASTE MESSAGE FIRST',1);
   if(!k)return ntf('! ENTER SECRET KEY',1);
+  let raw=i;
   if(m==='unlock'){
-    if(getBL().includes(i)){o.value='';return ntf('⛔ CODE BLACKLISTED & DESTROYED',1);}
-    if(i!==lastCode){fails=0;lastCode=i;upd();}
+    const extracted=fromZW(i);
+    if(extracted)raw=extracted;
+    if(getBL().includes(raw)){o.value='';return ntf('⛔ CODE BLACKLISTED & DESTROYED',1);}
+    if(raw!==lastCode){fails=0;lastCode=raw;upd();}
   }
   try{
     if(m==='lock'){
       const exp=Date.now()+3600000;
-      o.value=btoa(xor(encodeURIComponent("KALAH::"+exp+"::"+i),k));
-      ntf('✓ LOCKED (VALID FOR 1 HOUR)',0);
+      const cipher=btoa(xor(encodeURIComponent("KALAH::"+exp+"::"+i),k));
+      const cover=p||"OK";
+      o.value=cover+toZW(cipher);
+      ntf('✓ HIDDEN INSIDE PUBLIC MESSAGE',0);
     }else{
-      const d=decodeURIComponent(xor(atob(i),k));
+      const d=decodeURIComponent(xor(atob(raw),k));
       if(!d.startsWith("KALAH::"))throw 1;
       const pts=d.split("::");
-      const exp=parseInt(pts[1]);
-      if(Date.now()>exp){addBL(i);o.value='';return ntf('⌛ 1-HOUR TIME EXPIRED! BURNED',1);}
+      if(Date.now()>parseInt(pts[1])){addBL(raw);o.value='';return ntf('⌛ 1-HOUR EXPIRED! BURNED',1);}
       o.value=pts.slice(2).join("::");
-      fails=0;upd();ntf('✓ UNLOCKED',0);
+      fails=0;upd();ntf('✓ SECRET MESSAGE UNLOCKED',0);
     }
   }catch(e){
     o.value='';
     if(m==='unlock'){
       fails++;upd();
-      if(fails>=3)wipe(i);
+      if(fails>=3)wipe(raw);
       else{document.getElementById('key').value='';ntf(`⚠️ WRONG KEY! ${3-fails} LEFT`,1);}
     }else ntf('! ERROR',1);
   }
 }
-function cpy(){const o=document.getElementById('out');if(!o.value)return ntf('! NOTHING TO COPY',1);o.select();navigator.clipboard.writeText(o.value);ntf('✓ COPIED',0);}
-function wa(){const o=document.getElementById('out').value;if(!o)return ntf('! LOCK FIRST',1);window.location.href="https://wa.me"+encodeURIComponent("🔒 *ENCRYPTED (KALAH - 1H LIMIT)*\n\n"+o+"\n\n🔓 Unlock: "+window.location.href);}
+function cpy(){const o=document.getElementById('out');if(!o.value)return ntf('! NOTHING TO COPY',1);o.select();navigator.clipboard.writeText(o.value);ntf('✓ STEALTH MESSAGE COPIED',0);}
+function wa(){const o=document.getElementById('out').value;if(!o)return ntf('! HIDE A MESSAGE FIRST',1);window.location.href="https://wa.me"+encodeURIComponent(o);}
 </script>
 </body>
 </html>
