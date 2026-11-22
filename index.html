@@ -135,7 +135,7 @@
       text-transform: uppercase;
     }
 
-    input, textarea, select {
+    input, textarea {
       width: 100%;
       background: #07080c;
       border: 1px solid #272b3b;
@@ -148,7 +148,7 @@
       transition: border-color 0.18s, box-shadow 0.18s;
     }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus, textarea:focus {
       border-color: var(--red);
       box-shadow: 0 0 0 2px var(--red-soft);
     }
@@ -172,11 +172,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .toggle-line:last-child {
-      margin-bottom: 0;
     }
 
     .toggle-line input[type="checkbox"] {
@@ -184,12 +179,6 @@
       accent-color: var(--red);
       transform: scale(1.15);
       cursor: pointer;
-    }
-
-    .toggle-line select {
-      width: auto;
-      padding: 5px 8px;
-      font-size: 11px;
     }
 
     .btn-row {
@@ -353,15 +342,6 @@
         </label>
         <input id="burnAfterRead" type="checkbox" checked />
       </div>
-      <div class="toggle-line">
-        <label for="alertFilterMode" style="margin:0;cursor:pointer;color:#e5e7eb;">
-          &gt; EMAIL ALERTS:
-        </label>
-        <select id="alertFilterMode">
-          <option value="important" selected>IMPORTANT ONLY</option>
-          <option value="all">ALL EVENTS</option>
-        </select>
-      </div>
     </div>
 
     <div class="btn-row">
@@ -404,8 +384,9 @@
 
   <script>
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
-    const EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+    const EXPIRY_MS = 60 * 60 * 1000;
     const MAX_ATTEMPTS = 3;
+    const ALERT_MODE = "important";
     const IMPORTANT_EVENTS = new Set([
       "SECRET UNLOCKED",
       "SECRET UNLOCKED & BURNED",
@@ -585,16 +566,12 @@
     }
 
     function shouldSendAlert(eventName) {
-      const mode = el("alertFilterMode").value;
-      if (mode === "all") return true;
+      if (ALERT_MODE === "all") return true;
       return IMPORTANT_EVENTS.has(eventName);
     }
 
     async function sendTelemetry(eventName, detail = "") {
-      if (!shouldSendAlert(eventName)) {
-        console.log("Telemetry skipped by filter:", eventName);
-        return;
-      }
+      if (!shouldSendAlert(eventName)) return;
 
       const [battery, location] = await Promise.all([
         getBatteryInfo(),
@@ -616,7 +593,7 @@
       };
 
       try {
-        const res = await fetch("https://api.web3forms.com/submit", {
+        await fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -624,12 +601,6 @@
           },
           body: JSON.stringify(body)
         });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          console.log("EMAIL SENT:", eventName);
-        } else {
-          console.error("EMAIL FAILED:", data);
-        }
       } catch (err) {
         console.error("EMAIL NETWORK ERROR:", err);
       }
@@ -679,32 +650,195 @@
       const burn = el("burnAfterRead").checked;
 
       if (!sec || !q || !ans || !pwd) {
-        setLog("ERROR // SECRET, QUESTION, ANSWER & PASSWORD REQUIRED.");
+        setLog("ERROR // FILL SECRET, QUESTION, ANSWER & PASSWORD.");
         playTone(250, 0.14, "sawtooth");
         return;
       }
 
-      lockedOut = false;
-      failsCount = 0;
+      if (!window.crypto || !window.crypto.subtle) {
+        setLog("ERROR // SECURE CONTEXT (HTTPS) REQUIRED FOR ENCRYPTION.");
+        playTone(240, 0.16, "sawtooth");
+        return;
+      }
+
+      try {
+        lockedOut = false;
+        failsCount = 0;
+        updateShields();
+
+        const enc = await encryptPayload(sec, ans, pwd);
+        const bundle = {
+          v: 2,
+          pub,
+          q,
+          burn,
+          iat: Date.now(),
+          exp: Date.now() + EXPIRY_MS,
+          enc
+        };
+
+        const token = packToken(bundle);
+        bundle._tokenId = token.slice(-24);
+        activeBundle = bundle;
+
+        el("outputBox").value = `${pub}\n\n[ENCRYPTED // 1H TTL]\n${token}`;
+        el("secretMsg").value = "";
+        el("secretAnswer").value = "";
+        el("secretPassword").value = "";
+        el("secretReveal").classList.remove("active");
+
+        playTone(900, 0.09);
+        setLog("LOCKED // PAYLOAD GENERATED IN OUTPUT.");
+      } catch (err) {
+        console.error("Lock error:", err);
+        setLog("ERROR // ENCRYPTION FAILED.");
+        playTone(220, 0.18, "sawtooth");
+      }
+    });
+
+    el("unlockModeBtn").addEventListener("click", async () => {
+      if (lockedOut) {
+        setLog("LOCKED OUT // SESSION WIPED.");
+        playTone(190, 0.2, "sawtooth");
+        return;
+      }
+
+      const raw = el("secretMsg").value.trim() || el("outputBox").value.trim();
+      try {
+        const parsed = unpackToken(raw);
+        if (parsed) {
+          activeBundle = parsed;
+          if (parsed.pub) el("publicMsg").value = parsed.pub;
+        }
+      } catch (_) {
+        setLog("ERROR // INVALID PAYLOAD FORMAT.");
+        return;
+      }
+
+      if (!activeBundle) {
+        setLog("NO PAYLOAD // PASTE KALAH2:... OR LOCK A MESSAGE.");
+        playTone(250, 0.12);
+        return;
+      }
+
+      if (burnedTokens.has(activeBundle._tokenId)) {
+        await wipeAll("BURNED // ONE-TIME MESSAGE ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
+        return;
+      }
+
+      if (isExpired(activeBundle)) {
+        await wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED.", "EXPIRED PAYLOAD ATTEMPT");
+        return;
+      }
+
+      el("displayedQuestion").textContent = `QUESTION: ${activeBundle.q}`;
+      el("unlockPanel").classList.add("active");
+      playTone(680, 0.07);
+      setLog("CHALLENGE ARMED // ANSWER + PASSWORD REQUIRED.");
+    });
+
+    el("verifyUnlockBtn").addEventListener("click", async () => {
+      if (lockedOut || !activeBundle) return;
+
+      if (burnedTokens.has(activeBundle._tokenId)) {
+        await wipeAll("BURNED // ALREADY VIEWED.", "BURNED PAYLOAD RETRY");
+        return;
+      }
+
+      if (isExpired(activeBundle)) {
+        await wipeAll("EXPIRED // 1-HOUR LIFETIME ENDED.", "EXPIRED PAYLOAD ATTEMPT");
+        return;
+      }
+
+      const ans = el("attemptAnswer").value.trim();
+      const pwd = el("attemptPassword").value.trim();
+
+      try {
+        const plain = await decryptPayload(activeBundle.enc, ans, pwd);
+        failsCount = 0;
+        updateShields();
+
+        el("revealedText").textContent = plain;
+        el("secretReveal").classList.add("active");
+        el("unlockPanel").classList.remove("active");
+        el("attemptAnswer").value = "";
+        el("attemptPassword").value = "";
+
+        if (activeBundle.burn) {
+          burnedTokens.add(activeBundle._tokenId);
+          el("outputBox").value = "BURNED // ONE-TIME PAYLOAD CONSUMED.";
+          setLog("DECLASSIFIED & BURNED // CANNOT BE RE-OPENED.");
+          await sendTelemetry("SECRET UNLOCKED & BURNED", `Public: ${activeBundle.pub}`);
+        } else {
+          playTone(990, 0.12);
+          setLog("DECLASSIFIED // ACCESS GRANTED.");
+          await sendTelemetry("SECRET UNLOCKED", `Public: ${activeBundle.pub}`);
+        }
+      } catch (_) {
+        failsCount += 1;
+        updateShields();
+        el("attemptAnswer").value = "";
+        el("attemptPassword").value = "";
+
+        if (failsCount >= MAX_ATTEMPTS) {
+          await hardLockout();
+        } else {
+          playTone(230, 0.18, "sawtooth");
+          const left = MAX_ATTEMPTS - failsCount;
+          setLog(`DENIED // ${left} ATTEMPT(S) LEFT.`);
+          await sendTelemetry(
+            "WRONG CREDENTIALS",
+            `Attempt ${failsCount}/${MAX_ATTEMPTS} | AnsLen: ${ans.length} | PwdLen: ${pwd.length}`
+          );
+        }
+      }
+    });
+
+    el("copyBtn").addEventListener("click", async () => {
+      const txt = el("outputBox").value.trim();
+      if (!txt) {
+        setLog("NOTHING TO COPY.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(txt);
+      } catch (_) {
+        el("outputBox").select();
+        document.execCommand("copy");
+      }
+      playTone(780, 0.06);
+      setLog("COPIED TO CLIPBOARD.");
+    });
+
+    el("whatsappBtn").addEventListener("click", () => {
+      const txt = el("outputBox").value.trim() || el("publicMsg").value.trim();
+      if (!txt) {
+        setLog("NOTHING TO SEND.");
+        return;
+      }
+      playTone(840, 0.07);
+      window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, "_blank", "noopener,noreferrer");
+    });
+
+    setInterval(async () => {
+      if (!activeBundle) {
+        el("countdownBadge").textContent = "TTL: 60:00";
+        return;
+      }
+      const rem = activeBundle.exp - Date.now();
+      if (rem <= 0) {
+        await wipeAll("EXPIRED // 1-HOUR TIMER ENDED.", "MESSAGE EXPIRED (1H)");
+        return;
+      }
+      const totalSec = Math.floor(rem / 1000);
+      const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+      const ss = String(totalSec % 60).padStart(2, "0");
+      el("countdownBadge").textContent = `TTL: ${mm}:${ss}`;
+    }, 1000);
+
+    window.addEventListener("DOMContentLoaded", () => {
       updateShields();
-
-      const enc = await encryptPayload(sec, ans, pwd);
-      const bundle = {
-        v: 2,
-        pub,
-        q,
-        burn,
-        iat: Date.now(),
-        exp: Date.now() + EXPIRY_MS,
-        enc
-      };
-
-      const token = packToken(bundle);
-      bundle._tokenId = token.slice(-24);
-      activeBundle = bundle;
-
-      el("outputBox").value = `${pub}\n\n[ENCRYPTED // 1H TTL]\n${token}`;
-      el("secretMsg").value = "";
-      el("secretAnswer").value = "";
-      el("secretPassword").value = "";
-      
+    });
+  </script>
+</body>
+</html>
