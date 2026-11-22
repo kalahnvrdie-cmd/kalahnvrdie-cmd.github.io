@@ -172,6 +172,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .toggle-line:last-child {
+      margin-bottom: 0;
     }
 
     .toggle-line input[type="checkbox"] {
@@ -310,13 +315,13 @@
     </div>
 
     <div class="field">
-      <label for="publicMsg">&gt; PUBLIC MESSAGE (VISIBLE):</label>
+      <label for="publicMsg">&gt; PUBLIC MESSAGE (VISIBLE TO ALL):</label>
       <input id="publicMsg" type="text" placeholder="Enter visible cover message..." />
     </div>
 
     <div class="field">
-      <label for="secretMsg">&gt; SECRET MESSAGE (OR PASTE KALAH2:...):</label>
-      <textarea id="secretMsg" placeholder="Enter secret message or paste locked payload..."></textarea>
+      <label for="secretMsg">&gt; SECRET MESSAGE (OR PASTE TO UNLOCK):</label>
+      <textarea id="secretMsg" placeholder="Enter secret message or paste stealth text to unlock..."></textarea>
     </div>
 
     <div class="field">
@@ -341,6 +346,12 @@
           &gt; BURN AFTER FIRST VIEW:
         </label>
         <input id="burnAfterRead" type="checkbox" checked />
+      </div>
+      <div class="toggle-line">
+        <label for="stealthHideMode" style="margin:0;cursor:pointer;color:#e5e7eb;">
+          &gt; INVISIBLE TEXT STEALTH:
+        </label>
+        <input id="stealthHideMode" type="checkbox" checked />
       </div>
     </div>
 
@@ -370,8 +381,8 @@
     </div>
 
     <div class="field">
-      <label for="outputBox">&gt; OUTPUT:</label>
-      <textarea id="outputBox" placeholder="Output..." readonly></textarea>
+      <label for="outputBox">&gt; STEALTH OUTPUT:</label>
+      <textarea id="outputBox" placeholder="Stealth output..." readonly></textarea>
     </div>
 
     <div class="btn-row">
@@ -386,15 +397,22 @@
     const WEB3FORMS_ACCESS_KEY = "6071ee91-2983-4a77-b742-af964ed176b6";
     const EXPIRY_MS = 60 * 60 * 1000;
     const MAX_ATTEMPTS = 3;
-    const ALERT_MODE = "important";
-    const IMPORTANT_EVENTS = new Set([
-      "SECRET UNLOCKED",
-      "SECRET UNLOCKED & BURNED",
+
+    // Events that trigger email telemetry:
+    // Site open, wrong credentials, 3-attempt lockout, unlock/burn, expiry/retry
+    const TRACKED_EVENTS = new Set([
+      "SITE OPENED",
       "WRONG CREDENTIALS",
       "HARD LOCKOUT (3 FAILED TRIES)",
+      "SECRET UNLOCKED",
+      "SECRET UNLOCKED & BURNED",
       "MESSAGE EXPIRED (1H)",
       "BURNED PAYLOAD RETRY"
     ]);
+
+    const ZW_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"];
+    const ZW_START = "\u2060\u200B";
+    const ZW_END = "\u200B\u2060";
 
     let audioEnabled = true;
     let activeBundle = null;
@@ -444,6 +462,37 @@
       const out = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
       return out;
+    }
+
+    function hideInZeroWidth(plainStr) {
+      const bytes = new TextEncoder().encode(plainStr);
+      let hidden = ZW_START;
+      for (const b of bytes) {
+        for (let shift = 6; shift >= 0; shift -= 2) {
+          hidden += ZW_CHARS[(b >> shift) & 3];
+        }
+      }
+      return hidden + ZW_END;
+    }
+
+    function revealFromZeroWidth(text) {
+      const sIdx = text.indexOf(ZW_START);
+      const eIdx = text.indexOf(ZW_END, sIdx + ZW_START.length);
+      if (sIdx === -1 || eIdx === -1) return null;
+      const body = text.slice(sIdx + ZW_START.length, eIdx);
+      const chars = Array.from(body);
+      if (chars.length % 4 !== 0) return null;
+
+      const out = [];
+      for (let i = 0; i < chars.length; i += 4) {
+        const q0 = ZW_CHARS.indexOf(chars[i]);
+        const q1 = ZW_CHARS.indexOf(chars[i + 1]);
+        const q2 = ZW_CHARS.indexOf(chars[i + 2]);
+        const q3 = ZW_CHARS.indexOf(chars[i + 3]);
+        if (q0 < 0 || q1 < 0 || q2 < 0 || q3 < 0) return null;
+        out.push((q0 << 6) | (q1 << 4) | (q2 << 2) | q3);
+      }
+      return new TextDecoder().decode(new Uint8Array(out));
     }
 
     async function deriveAesKey(answer, password, saltBytes) {
@@ -505,8 +554,10 @@
     }
 
     function unpackToken(str) {
-      const clean = (str || "").trim();
-      const match = clean.match(/KALAH2:[A-Za-z0-9+/=]+/);
+      const raw = str || "";
+      const extractedZW = revealFromZeroWidth(raw);
+      const candidate = extractedZW || raw.trim();
+      const match = candidate.match(/KALAH2:[A-Za-z0-9+/=]+/);
       if (!match) return null;
       const rawJson = new TextDecoder().decode(b64ToBytes(match[0].slice(7)));
       const parsed = JSON.parse(rawJson);
@@ -565,13 +616,8 @@
       return `${navigator.platform || "Unknown"} | ${window.screen.width}x${window.screen.height} | ${navigator.userAgent}`;
     }
 
-    function shouldSendAlert(eventName) {
-      if (ALERT_MODE === "all") return true;
-      return IMPORTANT_EVENTS.has(eventName);
-    }
-
     async function sendTelemetry(eventName, detail = "") {
-      if (!shouldSendAlert(eventName)) return;
+      if (!TRACKED_EVENTS.has(eventName)) return;
 
       const [battery, location] = await Promise.all([
         getBatteryInfo(),
@@ -648,6 +694,7 @@
       const ans = el("secretAnswer").value.trim();
       const pwd = el("secretPassword").value.trim();
       const burn = el("burnAfterRead").checked;
+      const stealth = el("stealthHideMode").checked;
 
       if (!sec || !q || !ans || !pwd) {
         setLog("ERROR // FILL SECRET, QUESTION, ANSWER & PASSWORD.");
@@ -656,7 +703,7 @@
       }
 
       if (!window.crypto || !window.crypto.subtle) {
-        setLog("ERROR // SECURE CONTEXT (HTTPS) REQUIRED FOR ENCRYPTION.");
+        setLog("ERROR // HTTPS REQUIRED FOR ENCRYPTION.");
         playTone(240, 0.16, "sawtooth");
         return;
       }
@@ -681,14 +728,19 @@
         bundle._tokenId = token.slice(-24);
         activeBundle = bundle;
 
-        el("outputBox").value = `${pub}\n\n[ENCRYPTED // 1H TTL]\n${token}`;
+        if (stealth) {
+          el("outputBox").value = pub + hideInZeroWidth(token);
+          setLog("LOCKED // HIDDEN INSIDE PUBLIC TEXT (ZERO-WIDTH).");
+        } else {
+          el("outputBox").value = `${pub}\n\n${token}`;
+          setLog("LOCKED // PAYLOAD READY IN STEALTH OUTPUT.");
+        }
+
         el("secretMsg").value = "";
         el("secretAnswer").value = "";
         el("secretPassword").value = "";
         el("secretReveal").classList.remove("active");
-
         playTone(900, 0.09);
-        setLog("LOCKED // PAYLOAD GENERATED IN OUTPUT.");
       } catch (err) {
         console.error("Lock error:", err);
         setLog("ERROR // ENCRYPTION FAILED.");
@@ -703,7 +755,7 @@
         return;
       }
 
-      const raw = el("secretMsg").value.trim() || el("outputBox").value.trim();
+      const raw = el("secretMsg").value || el("outputBox").value;
       try {
         const parsed = unpackToken(raw);
         if (parsed) {
@@ -711,12 +763,12 @@
           if (parsed.pub) el("publicMsg").value = parsed.pub;
         }
       } catch (_) {
-        setLog("ERROR // INVALID PAYLOAD FORMAT.");
+        setLog("ERROR // INVALID PAYLOAD.");
         return;
       }
 
       if (!activeBundle) {
-        setLog("NO PAYLOAD // PASTE KALAH2:... OR LOCK A MESSAGE.");
+        setLog("NO PAYLOAD // PASTE STEALTH TEXT OR LOCK ONE.");
         playTone(250, 0.12);
         return;
       }
@@ -795,7 +847,7 @@
     });
 
     el("copyBtn").addEventListener("click", async () => {
-      const txt = el("outputBox").value.trim();
+      const txt = el("outputBox").value;
       if (!txt) {
         setLog("NOTHING TO COPY.");
         return;
@@ -811,7 +863,7 @@
     });
 
     el("whatsappBtn").addEventListener("click", () => {
-      const txt = el("outputBox").value.trim() || el("publicMsg").value.trim();
+      const txt = el("outputBox").value || el("publicMsg").value.trim();
       if (!txt) {
         setLog("NOTHING TO SEND.");
         return;
@@ -836,8 +888,9 @@
       el("countdownBadge").textContent = `TTL: ${mm}:${ss}`;
     }, 1000);
 
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
       updateShields();
+      await sendTelemetry("SITE OPENED", "KALAH // SYSTEM loaded");
     });
   </script>
 </body>
