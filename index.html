@@ -30,21 +30,21 @@ button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem
 <body>
 <div class="box">
   <div id="wipe">
-    <h2>⚠️ INTRUDER DETECTED ⚠️</h2>
-    <p>3 FAILED ATTEMPTS.<br>ALL DATA PERMANENTLY WIPED.</p>
+    <h2>⚠️ CODE BURNED ⚠️</h2>
+    <p>3 FAILED ATTEMPTS.<br>CODE ADDED TO PERMANENT BLACKLIST.</p>
     <div id="tmr">15s</div>
   </div>
   <div class="hdr">
     <h1>[ KALAH // SYSTEM ]</h1>
-    <p>ENCRYPTED. DO NOT DISTURB. 🔒</p>
+    <p>1-HOUR SELF-DESTRUCT PROTOCOL 🔒</p>
   </div>
-  <div class="bar"><span>DEFENSE: ACTIVE</span><span id="shd">🛡️ 🛡️ 🛡️</span></div>
+  <div class="bar"><span>⏱️ EXPIRY: 60 MINS</span><span id="shd">🛡️ 🛡️ 🛡️</span></div>
   <label>&gt; SECRET MESSAGE OR CODE:</label>
   <textarea id="in" rows="3" placeholder="Type message or paste code..."></textarea>
   <label>&gt; SECRET KEY (PASSWORD):</label>
   <input type="password" id="key" placeholder="Enter password...">
   <div class="row">
-    <button class="enc" onclick="run('lock')">🔒 LOCK</button>
+    <button class="enc" onclick="run('lock')">🔒 LOCK (1H)</button>
     <button class="dec" onclick="run('unlock')">🔓 UNLOCK</button>
   </div>
   <div id="msg"></div>
@@ -56,9 +56,12 @@ button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem
   </div>
 </div>
 <script>
-let fails=0;
+let fails=0,lastCode='';
+function getBL(){return JSON.parse(localStorage.getItem('kalah_bl')||'[]');}
+function addBL(c){const b=getBL();if(!b.includes(c)){b.push(c);localStorage.setItem('kalah_bl',JSON.stringify(b));}}
 function upd(){document.getElementById('shd').innerText='🛡️ '.repeat(3-fails)+'❌ '.repeat(fails);}
-function wipe(){
+function wipe(c){
+  addBL(c);
   document.getElementById('in').value='';
   document.getElementById('key').value='';
   document.getElementById('out').value='';
@@ -67,33 +70,41 @@ function wipe(){
   w.style.display='flex';let s=15;t.innerText=s+'s';
   const iv=setInterval(()=>{s--;t.innerText=s+'s';if(s<=0){clearInterval(iv);w.style.display='none';fails=0;upd();ntf('SYSTEM REBOOTED',0);}},1000);
 }
-function ntf(t,e){const m=document.getElementById('msg');m.style.color=e?'#ff3333':'#00ff66';m.innerText=t;setTimeout(()=>{if(m.innerText===t)m.innerText='';},3500);}
+function ntf(t,e){const m=document.getElementById('msg');m.style.color=e?'#ff3333':'#00ff66';m.innerText=t;setTimeout(()=>{if(m.innerText===t)m.innerText='';},4000);}
 function xor(s,k){let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return r;}
 function run(m){
   const i=document.getElementById('in').value.trim(),k=document.getElementById('key').value,o=document.getElementById('out');
   if(!i)return ntf('! TYPE SOMETHING FIRST',1);
   if(!k)return ntf('! ENTER SECRET KEY',1);
+  if(m==='unlock'){
+    if(getBL().includes(i)){o.value='';return ntf('⛔ CODE BLACKLISTED & DESTROYED',1);}
+    if(i!==lastCode){fails=0;lastCode=i;upd();}
+  }
   try{
     if(m==='lock'){
-      o.value=btoa(xor(encodeURIComponent("KALAH::"+i),k));
-      ntf('✓ LOCKED & READY',0);
+      const exp=Date.now()+3600000;
+      o.value=btoa(xor(encodeURIComponent("KALAH::"+exp+"::"+i),k));
+      ntf('✓ LOCKED (VALID FOR 1 HOUR)',0);
     }else{
       const d=decodeURIComponent(xor(atob(i),k));
       if(!d.startsWith("KALAH::"))throw 1;
-      o.value=d.slice(7);
+      const pts=d.split("::");
+      const exp=parseInt(pts[1]);
+      if(Date.now()>exp){addBL(i);o.value='';return ntf('⌛ 1-HOUR TIME EXPIRED! BURNED',1);}
+      o.value=pts.slice(2).join("::");
       fails=0;upd();ntf('✓ UNLOCKED',0);
     }
   }catch(e){
     o.value='';
     if(m==='unlock'){
       fails++;upd();
-      if(fails>=3)wipe();
+      if(fails>=3)wipe(i);
       else{document.getElementById('key').value='';ntf(`⚠️ WRONG KEY! ${3-fails} LEFT`,1);}
     }else ntf('! ERROR',1);
   }
 }
 function cpy(){const o=document.getElementById('out');if(!o.value)return ntf('! NOTHING TO COPY',1);o.select();navigator.clipboard.writeText(o.value);ntf('✓ COPIED',0);}
-function wa(){const o=document.getElementById('out').value;if(!o)return ntf('! LOCK FIRST',1);window.location.href="https://wa.me"+encodeURIComponent("🔒 *ENCRYPTED (KALAH)*\n\n"+o+"\n\n🔓 Unlock: "+window.location.href);}
+function wa(){const o=document.getElementById('out').value;if(!o)return ntf('! LOCK FIRST',1);window.location.href="https://wa.me"+encodeURIComponent("🔒 *ENCRYPTED (KALAH - 1H LIMIT)*\n\n"+o+"\n\n🔓 Unlock: "+window.location.href);}
 </script>
 </body>
 </html>
