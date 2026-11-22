@@ -1,243 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KALAH // ENCRYPTED TERMINAL</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background-color: #050505;
-            color: #ff1e42;
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            background-image: radial-gradient(circle at center, #1a0005 0%, #050505 100%);
-        }
-        .terminal-box {
-            width: 100%;
-            max-width: 480px;
-            background-color: #0a0a0a;
-            border: 2px solid #ff1e42;
-            box-shadow: 0 0 25px rgba(255, 30, 66, 0.35);
-            border-radius: 8px;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 1px dashed #ff1e42;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            font-size: 1.5rem;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px #ff1e42;
-        }
-        .header p {
-            font-size: 0.75rem;
-            color: #999;
-            margin-top: 5px;
-            letter-spacing: 1px;
-        }
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: #ff4d6d;
-        }
-        textarea, input {
-            width: 100%;
-            background-color: #111;
-            color: #fff;
-            border: 1px solid #ff1e42;
-            border-radius: 5px;
-            padding: 12px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        textarea:focus, input:focus {
-            box-shadow: 0 0 10px rgba(255, 30, 66, 0.6);
-            border-color: #fff;
-        }
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        button {
-            flex: 1;
-            padding: 12px;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.2s;
-        }
-        .btn-encrypt {
-            background-color: #ff1e42;
-            color: #050505;
-            border: none;
-        }
-        .btn-encrypt:active {
-            background-color: #fff;
-        }
-        .btn-decrypt {
-            background-color: transparent;
-            color: #ff1e42;
-            border: 1px solid #ff1e42;
-        }
-        .btn-decrypt:active {
-            background-color: #ff1e42;
-            color: #050505;
-        }
-        .btn-wa {
-            background-color: #128c7e;
-            color: #fff;
-            border: none;
-        }
-        .btn-copy {
-            background-color: #222;
-            color: #fff;
-            border: 1px solid #555;
-        }
-        #msgBox {
-            text-align: center;
-            font-size: 0.85rem;
-            min-height: 20px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        .footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #555;
-            margin-top: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KALAH // SYSTEM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#050505;color:#ff1e42;font-family:monospace;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:15px}
+.box{width:100%;max-width:460px;background:#0a0a0a;border:2px solid #ff1e42;box-shadow:0 0 20px rgba(255,30,66,.4);border-radius:8px;padding:18px;position:relative}
+.hdr{text-align:center;border-bottom:1px dashed #ff1e42;padding-bottom:12px;margin-bottom:12px}
+.hdr h1{font-size:1.4rem;letter-spacing:2px;text-shadow:0 0 8px #ff1e42}
+.hdr p{font-size:.75rem;color:#999;margin-top:4px}
+.bar{display:flex;justify-content:space-between;background:#140508;border:1px solid #4d000f;padding:6px 10px;border-radius:4px;font-size:.75rem;margin-bottom:12px}
+label{display:block;font-size:.8rem;font-weight:bold;margin-bottom:5px;color:#ff4d6d}
+textarea,input{width:100%;background:#111;color:#fff;border:1px solid #ff1e42;border-radius:5px;padding:10px;font-family:inherit;font-size:.95rem;margin-bottom:12px;outline:none}
+.row{display:flex;gap:10px;margin-bottom:12px}
+button{flex:1;padding:11px;font-family:inherit;font-weight:bold;font-size:.85rem;border-radius:5px;cursor:pointer;text-transform:uppercase}
+.enc{background:#ff1e42;color:#050505;border:none}
+.dec{background:transparent;color:#ff1e42;border:1px solid #ff1e42}
+.wa{background:#128c7e;color:#fff;border:none}
+.cpy{background:#222;color:#fff;border:1px solid #555}
+#msg{text-align:center;font-size:.8rem;min-height:20px;margin-bottom:8px;font-weight:bold}
+#wipe{display:none;position:absolute;inset:0;background:rgba(10,0,2,.97);border-radius:6px;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;z-index:10}
+#wipe h2{color:#ff1e42;font-size:1.3rem;margin-bottom:10px}
+#wipe p{color:#fff;font-size:.8rem;margin-bottom:12px}
+#tmr{font-size:1.8rem;font-weight:bold;color:#ff1e42}
+</style>
 </head>
 <body>
-
-<div class="terminal-box">
-    <div class="header">
-        <h1>[ KALAH // SYSTEM ]</h1>
-        <p>ENCRYPTED. DO NOT DISTURB. 🔒</p>
-    </div>
-
-    <label>&gt; ENTER SECRET MESSAGE OR CODE:</label>
-    <textarea id="inputArea" rows="4" placeholder="Type message to lock, or paste code to unlock..."></textarea>
-
-    <label>&gt; SECRET KEY (PASSWORD):</label>
-    <input type="password" id="passKey" placeholder="Enter secret key...">
-
-    <div class="btn-row">
-        <button class="btn-encrypt" onclick="runCipher('lock')">🔒 LOCK (ENCRYPT)</button>
-        <button class="btn-decrypt" onclick="runCipher('unlock')">🔓 UNLOCK (DECRYPT)</button>
-    </div>
-
-    <div id="msgBox"></div>
-
-    <label>&gt; TERMINAL OUTPUT:</label>
-    <textarea id="outputArea" rows="4" readonly placeholder="Encrypted/Decrypted result will appear here..."></textarea>
-
-    <div class="btn-row">
-        <button class="btn-copy" onclick="copyText()">📋 COPY</button>
-        <button class="btn-wa" onclick="shareWA()">📲 SEND WHATSAPP</button>
-    </div>
-
-    <div class="footer">SYSTEM SECURED BY KALAH PROTOCOL</div>
+<div class="box">
+  <div id="wipe">
+    <h2>⚠️ INTRUDER DETECTED ⚠️</h2>
+    <p>3 FAILED ATTEMPTS.<br>ALL DATA PERMANENTLY WIPED.</p>
+    <div id="tmr">15s</div>
+  </div>
+  <div class="hdr">
+    <h1>[ KALAH // SYSTEM ]</h1>
+    <p>ENCRYPTED. DO NOT DISTURB. 🔒</p>
+  </div>
+  <div class="bar"><span>DEFENSE: ACTIVE</span><span id="shd">🛡️ 🛡️ 🛡️</span></div>
+  <label>&gt; SECRET MESSAGE OR CODE:</label>
+  <textarea id="in" rows="3" placeholder="Type message or paste code..."></textarea>
+  <label>&gt; SECRET KEY (PASSWORD):</label>
+  <input type="password" id="key" placeholder="Enter password...">
+  <div class="row">
+    <button class="enc" onclick="run('lock')">🔒 LOCK</button>
+    <button class="dec" onclick="run('unlock')">🔓 UNLOCK</button>
+  </div>
+  <div id="msg"></div>
+  <label>&gt; TERMINAL OUTPUT:</label>
+  <textarea id="out" rows="3" readonly placeholder="Output appears here..."></textarea>
+  <div class="row">
+    <button class="cpy" onclick="cpy()">📋 COPY</button>
+    <button class="wa" onclick="wa()">📲 WHATSAPP</button>
+  </div>
 </div>
-
 <script>
-    function notify(text, isErr) {
-        const box = document.getElementById('msgBox');
-        box.style.color = isErr ? '#ff3333' : '#00ff66';
-        box.innerText = text;
-        setTimeout(() => { box.innerText = ''; }, 3500);
-    }
-
-    function cipherEngine(str, key) {
-        let out = '';
-        for (let i = 0; i < str.length; i++) {
-            out += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-        }
-        return out;
-    }
-
-    function runCipher(action) {
-        const input = document.getElementById('inputArea').value.trim();
-        const key = document.getElementById('passKey').value;
-        const output = document.getElementById('outputArea');
-
-        if (!input) {
-            notify('! TYPE SOMETHING FIRST', true);
-            return;
-        }
-        if (!key) {
-            notify('! ENTER SECRET KEY', true);
-            return;
-        }
-
-        try {
-            if (action === 'lock') {
-                const encodedUri = encodeURIComponent(input);
-                const xored = cipherEngine(encodedUri, key);
-                const base64 = btoa(xored);
-                output.value = base64;
-                notify('✓ MESSAGE LOCKED & READY', false);
-            } else {
-                const rawBase64 = atob(input);
-                const unxored = cipherEngine(rawBase64, key);
-                const decodedUri = decodeURIComponent(unxored);
-                output.value = decodedUri;
-                notify('✓ MESSAGE UNLOCKED', false);
-            }
-        } catch (err) {
-            output.value = '';
-            notify('! WRONG KEY OR INVALID CODE', true);
-        }
-    }
-
-    function copyText() {
-        const out = document.getElementById('outputArea');
-        if (!out.value) {
-            notify('! NOTHING TO COPY', true);
-            return;
-        }
-        out.select();
-        out.setSelectionRange(0, 99999);
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(out.value);
-        } else {
-            document.execCommand('copy');
-        }
-        notify('✓ COPIED TO CLIPBOARD', false);
-    }
-
-    function shareWA() {
-        const out = document.getElementById('outputArea').value;
-        if (!out) {
-            notify('! LOCK A MESSAGE FIRST', true);
-            return;
-        }
-        const siteUrl = window.location.href;
-        const fullMsg = "🔒 *ENCRYPTED MESSAGE (KALAH)*\n\n" + out + "\n\n🔓 Unlock here: " + siteUrl;
-        const waLink = "https://wa.me" + encodeURIComponent(fullMsg);
-        window.location.href = waLink;
-    }
+let fails=0;
+function upd(){document.getElementById('shd').innerText='🛡️ '.repeat(3-fails)+'❌ '.repeat(fails);}
+function wipe(){
+  document.getElementById('in').value='';
+  document.getElementById('key').value='';
+  document.getElementById('out').value='';
+  document.getElementById('msg').innerText='';
+  const w=document.getElementById('wipe'),t=document.getElementById('tmr');
+  w.style.display='flex';let s=15;t.innerText=s+'s';
+  const iv=setInterval(()=>{s--;t.innerText=s+'s';if(s<=0){clearInterval(iv);w.style.display='none';fails=0;upd();ntf('SYSTEM REBOOTED',0);}},1000);
+}
+function ntf(t,e){const m=document.getElementById('msg');m.style.color=e?'#ff3333':'#00ff66';m.innerText=t;setTimeout(()=>{if(m.innerText===t)m.innerText='';},3500);}
+function xor(s,k){let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return r;}
+function run(m){
+  const i=document.getElementById('in').value.trim(),k=document.getElementById('key').value,o=document.getElementById('out');
+  if(!i)return ntf('! TYPE SOMETHING FIRST',1);
+  if(!k)return ntf('! ENTER SECRET KEY',1);
+  try{
+    if(m==='lock'){o.value=btoa(xor(encodeURIComponent(i),k));ntf('✓ LOCKED & READY',0);}
+    else{const d=decodeURIComponent(xor(atob(i),k));if(!d)throw 1;o.value=d;fails=0;upd();ntf('✓ UNLOCKED',0);}
+  }catch(e){
+    o.value='';
+    if(m==='unlock'){fails++;upd();if(fails>=3)wipe();else{document.getElementById('key').value='';ntf(`⚠️ WRONG KEY! ${3-fails} LEFT`,1);}}
+    else ntf('! ERROR',1);
+  }
+}
+function cpy(){const o=document.getElementById('out');if(!o.value)return ntf('! NOTHING TO COPY',1);o.select();navigator.clipboard.writeText(o.value);ntf('✓ COPIED',0);}
+function wa(){const o=document.getElementById('out').value;if(!o)return ntf('! LOCK FIRST',1);window.location.href="https://wa.me"+encodeURIComponent("🔒 *ENCRYPTED (KALAH)*\n\n"+o+"\n\n🔓 Unlock: "+window.location.href);}
 </script>
-
 </body>
 </html>
