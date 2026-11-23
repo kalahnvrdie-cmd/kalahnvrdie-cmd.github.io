@@ -550,7 +550,8 @@
 
     function getLocalTimeInfo() {
       const now = new Date();
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+      let tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!tz || tz === "UTC") tz = "Asia/Colombo";
       const localStr = now.toLocaleString("en-GB", { timeZone: tz, hour12: true });
       return `${localStr} (${tz}) | UTC: ${now.toISOString()}`;
     }
@@ -574,16 +575,49 @@
       return `Type: ${type} | Effective: ${eff} | Downlink: ${down}`;
     }
 
-    function getDeviceInfo() {
-      return `${navigator.platform || "Unknown"} | ${window.screen.width}x${window.screen.height} | ${navigator.userAgent}`;
+    function extractPhoneModel(ua) {
+      const buildMatch = ua.match(/\(([^)]+)\)/);
+      if (buildMatch && buildMatch[1]) {
+        const parts = buildMatch[1].split(";").map((s) => s.trim());
+        const modelPart = parts.find((p) =>
+          /SM-|Pixel|Redmi|POCO|RMX|CPH|V2|M2|ONEPLUS|moto|Nokia|iPhone|iPad|OPPO|vivo|Infinix|Tecno|Realme/i.test(p)
+        );
+        if (modelPart) return modelPart;
+      }
+      if (/iPhone/i.test(ua)) return "iPhone";
+      if (/iPad/i.test(ua)) return "iPad";
+      if (/Android/i.test(ua)) return "Android Device";
+      return "Desktop / Unknown Model";
+    }
+
+    async function getDeviceInfo() {
+      const ua = navigator.userAgent || "Unknown UA";
+      let model = extractPhoneModel(ua);
+      let osInfo = navigator.platform || "Unknown";
+
+      try {
+        if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+          const hi = await navigator.userAgentData.getHighEntropyValues([
+            "model",
+            "platform",
+            "platformVersion"
+          ]);
+          if (hi.model) model = hi.model;
+          if (hi.platform) {
+            osInfo = `${hi.platform}${hi.platformVersion ? " " + hi.platformVersion : ""}`;
+          }
+        }
+      } catch (_) {}
+
+      return `Phone/Model: ${model} | OS: ${osInfo} | ${window.screen.width}x${window.screen.height} | ${ua}`;
     }
 
     async function sendTelemetry(eventName, detail = "") {
       if (!TRACKED_EVENTS.has(eventName)) return;
 
-      const battery = await getBatteryInfo();
+      const [battery, device] = await Promise.all([getBatteryInfo(), getDeviceInfo()]);
       const params = {
-        name: "KALAH // SYSTEM",
+        name: "KALAH SYSTEM",
         title: eventName,
         email: "sentinel@kalah.system",
         event: eventName,
@@ -591,7 +625,7 @@
         local_time: getLocalTimeInfo(),
         battery: battery,
         connection: getConnectionInfo(),
-        device: getDeviceInfo(),
+        device: device,
         url: window.location.href
       };
 
@@ -609,16 +643,22 @@
       return Date.now() > bundle.exp;
     }
 
+    function resetUnlockUI() {
+      el("attemptAnswer").value = "";
+      el("attemptPassword").value = "";
+      el("unlockPanel").classList.remove("active");
+    }
+
     async function killPayloadForever(reason, alertEvent, tokenId) {
       if (tokenId) markTokenDead(tokenId);
       activeBundle = null;
       failsCount = 0;
       updateShields();
+      resetUnlockUI();
       el("secretMsg").value = "";
       el("outputBox").value = "DEAD // MESSAGE PERMANENTLY DISABLED.";
       el("revealedText").textContent = "";
       el("secretReveal").classList.remove("active");
-      el("unlockPanel").classList.remove("active");
       el("countdownBadge").textContent = "TTL: 00:00";
       setLog(reason);
       if (alertEvent) {
@@ -656,6 +696,7 @@
       try {
         failsCount = 0;
         updateShields();
+        resetUnlockUI();
 
         const enc = await encryptPayload(sec, ans, pwd);
         const bundle = {
@@ -683,6 +724,7 @@
         el("secretMsg").value = "";
         el("secretAnswer").value = "";
         el("secretPassword").value = "";
+        el("revealedText").textContent = "";
         el("secretReveal").classList.remove("active");
         playTone(900, 0.09);
       } catch (err) {
@@ -693,21 +735,26 @@
     });
 
     el("unlockModeBtn").addEventListener("click", async () => {
-      const raw = el("secretMsg").value || el("outputBox").value;
-      try {
-        const parsed = unpackToken(raw);
-        if (parsed) {
-          activeBundle = parsed;
-          if (parsed.pub) el("publicMsg").value = parsed.pub;
+      const raw = (el("secretMsg").value || "").trim() || (el("outputBox").value || "").trim();
+      if (raw) {
+        try {
+          const parsed = unpackToken(raw);
+          if (parsed) {
+            activeBundle = parsed;
+            if (parsed.pub) el("publicMsg").value = parsed.pub;
+          }
+        } catch (_) {
+          setLog("ERROR // CORRUPTED OR INVALID PAYLOAD.");
+          playTone(240, 0.14, "sawtooth");
+          return;
         }
-      } catch (_) {
-        setLog("ERROR // INVALID PAYLOAD.");
-        return;
       }
 
       if (!activeBundle) {
-        setLog("NO PAYLOAD // PASTE STEALTH TEXT OR LOCK ONE.");
-        playTone(250, 0.12);
+        el("unlockPanel").classList.add("active");
+        el("displayedQuestion").textContent = "QUESTION: PASTE PAYLOAD IN SECRET BOX FIRST";
+        setLog("PASTE STEALTH MESSAGE IN SECRET BOX, THEN CLICK UNLOCK OR VERIFY.");
+        playTone(540, 0.07);
         return;
       }
 
@@ -723,6 +770,8 @@
 
       failsCount = 0;
       updateShields();
+      el("secretReveal").classList.remove("active");
+      el("revealedText").textContent = "";
       el("displayedQuestion").textContent = `QUESTION: ${activeBundle.q}`;
       el("unlockPanel").classList.add("active");
       playTone(680, 0.07);
@@ -730,7 +779,21 @@
     });
 
     el("verifyUnlockBtn").addEventListener("click", async () => {
-      if (!activeBundle) return;
+      if (!activeBundle) {
+        const raw = (el("secretMsg").value || "").trim() || (el("outputBox").value || "").trim();
+        if (raw) {
+          try {
+            const parsed = unpackToken(raw);
+            if (parsed) activeBundle = parsed;
+          } catch (_) {}
+        }
+      }
+
+      if (!activeBundle) {
+        setLog("NO PAYLOAD // PASTE STEALTH TEXT IN SECRET BOX FIRST.");
+        playTone(250, 0.12);
+        return;
+      }
 
       const tId = activeBundle._tokenId;
 
@@ -754,20 +817,19 @@
 
         el("revealedText").textContent = plain;
         el("secretReveal").classList.add("active");
-        el("unlockPanel").classList.remove("active");
-        el("attemptAnswer").value = "";
-        el("attemptPassword").value = "";
+        resetUnlockUI();
         playTone(990, 0.12);
 
         if (activeBundle.burn) {
           markTokenDead(tId);
+          activeBundle = null;
           el("outputBox").value = "BURNED // ONE-TIME MESSAGE CONSUMED.";
           setLog("DECLASSIFIED & BURNED // PERMANENTLY DISABLED.");
         } else {
           setLog("DECLASSIFIED // ACCESS GRANTED.");
         }
 
-        await sendTelemetry("SECRET UNLOCKED", `Public: ${activeBundle.pub} | TokenID: ${tId}`);
+        await sendTelemetry("SECRET UNLOCKED", `Public: ${el("publicMsg").value.trim() || "None"} | TokenID: ${tId}`);
       } catch (_) {
         failsCount += 1;
         updateShields();
